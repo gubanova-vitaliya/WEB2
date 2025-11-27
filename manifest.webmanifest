@@ -1,0 +1,1 @@
+{"name":"Gase Application","short_name":"Gase App","start_url":"/WEB2/","display":"standalone","background_color":"#fdfdfd","theme_color":"#db4938","lang":"en","scope":"/WEB2/","orientation":"portrait-primary","icons":[{"src":"/WEB2/DefaultImage.svg","type":"image/svg+xml","sizes":"192x192"},{"src":"/WEB2/DefaultImage.svg","type":"image/svg+xml","sizes":"512x512"}]}
