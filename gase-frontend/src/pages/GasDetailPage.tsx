@@ -1,7 +1,7 @@
 import "./GasDetailPage.css";
 import { FC, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { Gas } from "../components/GasCard";
+import { Gas } from "../store/slices/gasSlice";
 import { getGasById } from "../modules/gasApi";
 import { Spinner } from "react-bootstrap";
 import defaultImage from "/DefaultImage.svg";

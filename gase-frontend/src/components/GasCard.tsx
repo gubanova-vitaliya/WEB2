@@ -1,16 +1,10 @@
 import { FC } from "react";
-import { Card, Button } from "react-bootstrap";
+import { Card, Button, Badge } from "react-bootstrap";
+import { useAppDispatch } from "../store/hooks";
+import { addToCart, useCartItemCount } from "../store/slices/cartSlice";
+import { Gas } from "../store/slices/gasSlice";
 import "./GasCard.css";
 import defaultImage from "/DefaultImage.svg";
-
-export interface Gas {
-  id: number;
-  title: string;
-  formula: string;
-  molar_mass: number;
-  image_url?: string;
-  description?: string;
-}
 
 interface GasCardProps {
   gas: Gas;
@@ -18,11 +12,19 @@ interface GasCardProps {
 }
 
 export const GasCard: FC<GasCardProps> = ({ gas, onCardClick }) => {
+  const dispatch = useAppDispatch();
+  const cartCount = useCartItemCount(gas.id);
+
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
     const target = e.target as HTMLImageElement;
     if (target.src !== defaultImage) {
       target.src = defaultImage;
     }
+  };
+
+  const handleAddToCart = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    dispatch(addToCart(gas));
   };
 
   return (
@@ -55,15 +57,32 @@ export const GasCard: FC<GasCardProps> = ({ gas, onCardClick }) => {
             <Card.Text>{gas.description}</Card.Text>
           </div>
         )}
-        <Button
-          className="card-button"
-          variant="primary"
-          onClick={() => onCardClick(gas.id)}
-        >
-          Подробнее
-        </Button>
+        <div className="d-flex gap-2">
+          <Button
+            className="card-button flex-grow-1"
+            variant="primary"
+            onClick={() => onCardClick(gas.id)}
+          >
+            Подробнее
+          </Button>
+          <Button
+            variant="success"
+            onClick={handleAddToCart}
+            className="position-relative"
+          >
+            ➕ В расчет
+            {cartCount > 0 && (
+              <Badge 
+                bg="danger" 
+                pill 
+                className="position-absolute top-0 start-100 translate-middle"
+              >
+                {cartCount}
+              </Badge>
+            )}
+          </Button>
+        </div>
       </Card.Body>
     </Card>
   );
 };
-

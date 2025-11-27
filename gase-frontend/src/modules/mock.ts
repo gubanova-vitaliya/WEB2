@@ -1,4 +1,4 @@
-import { Gas } from "../components/GasCard";
+import { Gas } from "../store/slices/gasSlice";
 
 export const GASES_MOCK: Gas[] = [
   {

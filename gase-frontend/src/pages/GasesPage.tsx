@@ -1,139 +1,105 @@
 import "./GasesPage.css";
 import { FC, useState, useEffect } from "react";
-import { Spinner } from "react-bootstrap";
-import { ROUTES, ROUTE_LABELS } from "../Routes";
+import { Container, Row, Col, Form, Button, Spinner } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
-import { getGases, GasFilters } from "../modules/gasApi";
-import defaultImage from "/DefaultImage.svg";
+import { useAppDispatch } from "../store/hooks";
+import { 
+  fetchGases, 
+  useGases, 
+  useGasLoading, 
+  useGasError,
+  setSearchFilters,
+  useSearchFilters
+} from "../store/slices/gasSlice";
+import { GasCard } from "../components/GasCard";
+import { Cart } from "../components/Cart";
+import { ROUTES, ROUTE_LABELS } from "../Routes";
 
 export const GasesPage: FC = () => {
-  const [gases, setGases] = useState<any[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [searchValue, setSearchValue] = useState("");
-  const [cartCount] = useState(0); // По умолчанию 0, не загружаем из API
-
+  const dispatch = useAppDispatch();
   const navigate = useNavigate();
-
-  const loadGases = async () => {
-    setLoading(true);
-    try {
-      const filters: GasFilters = searchValue ? { search: searchValue } : {};
-      const filteredGases = await getGases(filters);
-      setGases(filteredGases);
-    } catch (error) {
-      console.error("Error loading gases:", error);
-      // Уже обработано в getGases, просто логируем
-    } finally {
-      setLoading(false);
-    }
-  };
+  
+  const gases = useGases();
+  const loading = useGasLoading();
+  const error = useGasError();
+  const searchFilters = useSearchFilters();
+  
+  const [searchValue, setSearchValue] = useState(searchFilters.search || "");
 
   useEffect(() => {
-    loadGases();
-    // Счетчик корзины по умолчанию 0, не загружаем из API
-  }, []);
+    // Загружаем газы при первом рендере
+    dispatch(fetchGases(searchFilters));
+  }, [dispatch]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    loadGases();
+    const filters = searchValue ? { search: searchValue } : {};
+    dispatch(setSearchFilters(filters));
+    dispatch(fetchGases(filters));
   };
 
   const handleCardClick = (id: number) => {
     navigate(`${ROUTES.GASES}/${id}`);
   };
 
-  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
-    // Если изображение не загрузилось (из MinIO или другого источника), используем дефолтное
-    const target = e.target as HTMLImageElement;
-    if (target.src !== defaultImage) {
-      target.src = defaultImage;
-    }
-  };
-
   return (
-    <div className="gases-page">
-      <div className="page-header">
+    <>
+      <Container fluid className="gases-page">
+        <div className="page-header">
           <h1>{ROUTE_LABELS.GASES}</h1>
-        <a
-          href="#"
-          className={`cart-link ${cartCount > 0 ? "active" : "inactive"}`}
-          onClick={(e) => {
-            e.preventDefault();
-            if (cartCount > 0) {
-              // Можно добавить переход на страницу журнала
-              alert(`В корзине ${cartCount} газов`);
-            }
-          }}
-        >
-          <span className="cart-icon">📋</span>
-          Журнал расчетов
-          <span className="cart-count">{cartCount}</span>
-        </a>
-      </div>
-
-      <form className="search-form" onSubmit={handleSearch}>
-        <input
-          type="text"
-          placeholder="Поиск газа..."
-          value={searchValue}
-          onChange={(e) => setSearchValue(e.target.value)}
-        />
-        <button type="submit">🔍 Поиск газа</button>
-      </form>
-
-      {loading && (
-        <div className="loading-bg">
-          <Spinner animation="border" />
         </div>
-      )}
 
-      {!loading && gases.length === 0 && (
-        <div className="no-results">
-          <h3>Газы не найдены</h3>
-          <p>Попробуйте изменить параметры поиска</p>
-        </div>
-      )}
-
-      {!loading && gases.length > 0 && (
-        <div className="grid">
-          {gases.map((gas) => (
-            <div key={gas.id} className="card">
-              <h2>{gas.title}</h2>
-              <img
-                src={gas.image_url || defaultImage}
-                alt={gas.title}
-                width="150"
-                onError={handleImageError}
-                loading="lazy"
+        <Form className="search-form" onSubmit={handleSearch}>
+          <Row className="g-2">
+            <Col>
+              <Form.Control
+                type="text"
+                placeholder="Поиск газа по названию или формуле..."
+                value={searchValue}
+                onChange={(e) => setSearchValue(e.target.value)}
               />
-              <p>
-                <strong>Формула:</strong> {gas.formula}
-              </p>
-              <p>
-                <strong>Молярная масса:</strong> {gas.molar_mass.toFixed(2)} г/моль
-              </p>
-              {gas.description && (
-                <p>
-                  <strong>Описание:</strong> {gas.description}
-                </p>
-              )}
-              <p>
-                <strong>ID:</strong> {gas.id}
-              </p>
-              <a
-                href={`${ROUTES.GASES}/${gas.id}`}
-                className="yellow-btn"
-                onClick={(e) => {
-                  e.preventDefault();
-                  handleCardClick(gas.id);
-                }}
-              >
-                📖 Подробнее
-              </a>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
+            </Col>
+            <Col xs="auto">
+              <Button type="submit" variant="primary">
+                🔍 Поиск
+              </Button>
+            </Col>
+          </Row>
+        </Form>
+
+        {loading && (
+          <div className="loading-bg">
+            <Spinner animation="border" role="status">
+              <span className="visually-hidden">Загрузка...</span>
+            </Spinner>
+          </div>
+        )}
+
+        {error && (
+          <div className="alert alert-danger" role="alert">
+            <strong>Ошибка:</strong> {error}
+          </div>
+        )}
+
+        {!loading && !error && gases.length === 0 && (
+          <div className="no-results">
+            <h3>Газы не найдены</h3>
+            <p>Попробуйте изменить параметры поиска</p>
+          </div>
+        )}
+
+        {!loading && gases.length > 0 && (
+          <Row xs={1} md={2} lg={3} xl={4} className="g-4">
+            {gases.map((gas) => (
+              <Col key={gas.id}>
+                <GasCard gas={gas} onCardClick={handleCardClick} />
+              </Col>
+            ))}
+          </Row>
+        )}
+      </Container>
+      
+      <Cart />
+    </>
   );
 };

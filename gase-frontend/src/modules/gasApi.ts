@@ -1,4 +1,4 @@
-import { Gas } from "../components/GasCard";
+import { Gas } from "../store/slices/gasSlice";
 import { GASES_MOCK } from "./mock";
 
 export interface GasFilters {
@@ -60,7 +60,7 @@ export const getGases = async (filters?: GasFilters): Promise<Gas[]> => {
       title: gas.Title || gas.title,
       formula: gas.Formula || gas.formula,
       molar_mass: gas.MolarMass || gas.molar_mass,
-      image_url: transformImageUrl(gas.ImageURL || gas.image_url),
+      image_url: transformImageUrl(gas.ImageURL || gas.image_url) || undefined,
       description: gas.Description || gas.description,
     }));
   } catch (error: any) {
@@ -100,7 +100,7 @@ export const getGasById = async (id: number): Promise<Gas | null> => {
       title: data.Title || data.title,
       formula: data.Formula || data.formula,
       molar_mass: data.MolarMass || data.molar_mass,
-      image_url: transformImageUrl(data.ImageURL || data.image_url),
+      image_url: transformImageUrl(data.ImageURL || data.image_url) || undefined,
       description: data.Description || data.description,
     };
   } catch (error: any) {
