@@ -1,5 +1,6 @@
 import { Gas } from "../components/GasCard";
 import { GASES_MOCK } from "./mock";
+import { getDestApi, getDestImg } from "../../target_config";
 
 export interface GasFilters {
   search?: string;
@@ -23,7 +24,7 @@ const transformImageUrl = (imageUrl: string | null): string | null => {
         path = path.replace('gase/', 'gases/');
       }
       
-      return `/api/minio/${path}`;
+      return `${getDestImg()}/minio/${path}`;
     }
   }
   
@@ -38,7 +39,7 @@ export const getGases = async (filters?: GasFilters): Promise<Gas[]> => {
     }
 
     const queryString = params.toString();
-    const url = `/api/gases${queryString ? `?${queryString}` : ""}`;
+    const url = `${getDestApi()}/gases${queryString ? `?${queryString}` : ""}`;
 
     const response = await fetch(url);
     
@@ -86,7 +87,7 @@ export const getGases = async (filters?: GasFilters): Promise<Gas[]> => {
 
 export const getGasById = async (id: number): Promise<Gas | null> => {
   try {
-    const response = await fetch(`/api/gases/${id}`);
+    const response = await fetch(`${getDestApi()}/gases/${id}`);
     
     // Если ошибка сервера, используем mock данные
     if (!response.ok) {

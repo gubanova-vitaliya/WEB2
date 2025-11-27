@@ -22,6 +22,12 @@ export const AppNavbar: FC = () => {
             <Nav.Link as={Link} to={ROUTES.GASES}>
               {ROUTE_LABELS.GASES}
             </Nav.Link>
+            <Nav.Link as={Link} to={ROUTES.REDUX_DEMO}>
+              {ROUTE_LABELS.REDUX_DEMO}
+            </Nav.Link>
+            <Nav.Link as={Link} to={ROUTES.NOTES}>
+              {ROUTE_LABELS.NOTES}
+            </Nav.Link>
           </Nav>
         </Navbar.Collapse>
       </Container>

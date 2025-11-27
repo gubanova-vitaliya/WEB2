@@ -8,7 +8,7 @@ export interface Gas {
   title: string;
   formula: string;
   molar_mass: number;
-  image_url?: string;
+  image_url?: string | null;
   description?: string;
 }
 

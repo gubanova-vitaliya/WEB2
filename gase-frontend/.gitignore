@@ -23,4 +23,14 @@ dist-ssr
 *.sln
 *.sw?
 
+# SSL certificates (не должны попадать в репозиторий)
+*.key
+*.crt
+ca.key
+ca.crt
+cert.key
+cert.crt
 
+# PWA
+sw.js
+workbox-*.js

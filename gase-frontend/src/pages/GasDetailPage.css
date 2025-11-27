@@ -130,8 +130,129 @@
   background-color: #e0a800;
 }
 
+/* Адаптивность для планшетов */
 @media (max-width: 768px) {
+  .gas-detail-page {
+    padding: 15px 0;
+  }
+  
+  .gas-detail-container {
+    padding: 15px;
+  }
+  
+  .gas-card {
+    padding: 20px;
+  }
+  
+  .gas-header h1 {
+    font-size: 28px;
+  }
+  
+  .gas-formula {
+    font-size: 16px;
+    padding: 6px 14px;
+  }
+  
+  .gas-image img {
+    max-width: 250px;
+  }
+  
   .gas-properties {
     grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  
+  .property-card {
+    padding: 12px;
+  }
+  
+  .property-value {
+    font-size: 16px;
+  }
+  
+  .gas-description {
+    padding: 15px;
+    font-size: 15px;
+  }
+}
+
+/* Адаптивность для мобильных устройств */
+@media (max-width: 480px) {
+  .gas-detail-page {
+    padding: 10px 0;
+  }
+  
+  .gas-detail-container {
+    padding: 10px;
+  }
+  
+  .gas-card {
+    padding: 15px;
+    border-radius: 8px;
+  }
+  
+  .gas-header {
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+  }
+  
+  .gas-header h1 {
+    font-size: 24px;
+    margin-bottom: 8px;
+  }
+  
+  .gas-formula {
+    font-size: 14px;
+    padding: 5px 12px;
+  }
+  
+  .gas-image {
+    margin: 15px 0;
+  }
+  
+  .gas-image img {
+    max-width: 200px;
+    border-radius: 8px;
+  }
+  
+  .gas-properties {
+    margin: 20px 0;
+    gap: 10px;
+  }
+  
+  .property-card {
+    padding: 10px;
+    border-radius: 6px;
+  }
+  
+  .property-label {
+    font-size: 13px;
+  }
+  
+  .property-value {
+    font-size: 15px;
+  }
+  
+  .gas-description {
+    padding: 12px;
+    font-size: 14px;
+    border-radius: 8px;
+  }
+  
+  .not-found {
+    padding: 40px 15px;
+  }
+  
+  .not-found h2 {
+    font-size: 1.5rem;
+  }
+  
+  .not-found p {
+    font-size: 14px;
+  }
+  
+  .yellow-btn {
+    padding: 8px 14px;
+    font-size: 14px;
   }
 }

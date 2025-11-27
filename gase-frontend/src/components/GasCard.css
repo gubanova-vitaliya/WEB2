@@ -3,6 +3,14 @@
   height: 100%;
   display: flex;
   flex-direction: column;
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.gas-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
 }
 
 .card-image {
@@ -10,6 +18,11 @@
   height: 200px;
   width: 100%;
   background-color: #f5f5f5;
+  transition: transform 0.2s ease-in-out;
+}
+
+.card-image:hover {
+  transform: scale(1.05);
 }
 
 .text-style {
@@ -22,11 +35,61 @@
 .text-style.description {
   max-height: 60px;
   overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
 }
 
 .card-button {
   width: 100%;
   margin-top: auto;
+  border-radius: 8px;
+  font-weight: 500;
+  transition: all 0.2s ease-in-out;
+}
+
+.card-button:hover {
+  transform: translateY(-1px);
+}
+
+/* Адаптивность для мобильных устройств */
+@media (max-width: 768px) {
+  .gas-card {
+    padding: 6px;
+  }
+  
+  .card-image {
+    height: 150px;
+  }
+  
+  .text-style {
+    margin-bottom: 8px;
+  }
+  
+  .text-style.description {
+    max-height: 45px;
+    -webkit-line-clamp: 2;
+  }
+}
+
+@media (max-width: 480px) {
+  .gas-card {
+    padding: 4px;
+  }
+  
+  .card-image {
+    height: 120px;
+  }
+  
+  .text-style {
+    margin-bottom: 6px;
+    font-size: 0.9rem;
+  }
+  
+  .card-button {
+    font-size: 0.9rem;
+    padding: 8px 12px;
+  }
 }
 
 

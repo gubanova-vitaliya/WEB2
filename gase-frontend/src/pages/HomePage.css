@@ -42,8 +42,115 @@
   opacity: 0.3;
 }
 
+/* Адаптивность для планшетов */
 @media (max-width: 768px) {
   .hero {
-    padding-top: 20px;
+    padding: 20px 15px;
+    min-height: calc(100vh - 100px);
+  }
+  
+  .hero-video {
+    width: 100%;
+    border-radius: 16px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+  }
+}
+
+/* Адаптивность для мобильных устройств */
+@media (max-width: 480px) {
+  .home-page {
+    min-height: calc(100vh - 56px);
+  }
+  
+  .hero {
+    padding: 15px 10px;
+    min-height: calc(100vh - 80px);
+  }
+  
+  .hero-video {
+    border-radius: 12px;
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.35);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+  
+  .video-overlay {
+    background: linear-gradient(120deg, rgba(6, 16, 31, 0.7), rgba(0, 128, 255, 0.2));
+  }
+}
+
+/* Fallback контент когда видео не загружается */
+.video-fallback {
+  position: relative;
+  width: 100%;
+  min-height: 400px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #0b3c5d 0%, #020b16 100%);
+  border-radius: 24px;
+  padding: 40px 20px;
+  text-align: center;
+}
+
+.fallback-image {
+  width: 120px;
+  height: 120px;
+  margin-bottom: 20px;
+  opacity: 0.8;
+}
+
+.fallback-content h1 {
+  color: #ffffff;
+  font-size: 2.5rem;
+  margin-bottom: 10px;
+  font-weight: 600;
+}
+
+.fallback-content p {
+  color: #b0c4de;
+  font-size: 1.2rem;
+  margin-bottom: 30px;
+  max-width: 500px;
+}
+
+.features {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
+  max-width: 600px;
+  width: 100%;
+}
+
+.feature {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 15px 20px;
+  border-radius: 12px;
+  color: #ffffff;
+  font-weight: 500;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Адаптивность для очень маленьких экранов */
+@media (max-width: 320px) {
+  .hero {
+    padding: 10px 5px;
+  }
+  
+  .hero-video {
+    border-radius: 8px;
+  }
+  
+  .fallback-content h1 {
+    font-size: 2rem;
+  }
+  
+  .fallback-content p {
+    font-size: 1rem;
+  }
+  
+  .features {
+    grid-template-columns: 1fr;
   }
 }
