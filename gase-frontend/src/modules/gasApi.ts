@@ -40,7 +40,11 @@ export const getGases = async (filters?: GasFilters): Promise<Gas[]> => {
     const queryString = params.toString();
     const url = `/api/gases${queryString ? `?${queryString}` : ""}`;
 
+    console.log('🔵 [API] Fetching gases from:', url);
+    console.log('🔵 [API] Full URL will be:', window.location.origin + url);
     const response = await fetch(url);
+    console.log('🟢 [API] Response status:', response.status, response.statusText);
+    console.log('🟢 [API] Response headers:', Object.fromEntries(response.headers.entries()));
     
     // Если ошибка сервера, используем mock данные
     if (!response.ok) {
@@ -65,7 +69,9 @@ export const getGases = async (filters?: GasFilters): Promise<Gas[]> => {
     }));
   } catch (error: any) {
     // Перехватываем все ошибки: сетевые, 500 и т.д.
-    console.warn("Error fetching gases, using mock data:", error.message || error);
+    console.error("❌ Error fetching gases:", error);
+    console.warn("⚠️ Using mock data instead");
+    console.log("💡 Check if backend is running on http://192.168.0.100:8080");
     
     // Используем mock данные при любой ошибке
     let mockGases = [...GASES_MOCK];
