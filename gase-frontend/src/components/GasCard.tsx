@@ -20,7 +20,9 @@ interface GasCardProps {
 export const GasCard: FC<GasCardProps> = ({ gas, onCardClick }) => {
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
     const target = e.target as HTMLImageElement;
-    if (target.src !== defaultImage) {
+    // Логируем ошибку для отладки
+    console.warn(`Failed to load image: ${target.src}, falling back to default image`);
+    if (target.src !== defaultImage && !target.src.includes('DefaultImage')) {
       target.src = defaultImage;
     }
   };

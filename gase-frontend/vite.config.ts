@@ -37,14 +37,14 @@ export default defineConfig({
         orientation: "portrait-primary",
         icons: [
           {
-            src: `${dest_root}logo192.png`,
-            type: "image/png",
+            src: `${dest_root}DefaultImage.svg`,
+            type: "image/svg+xml",
             sizes: "192x192",
             purpose: "any maskable"
           },
           {
-            src: `${dest_root}logo512.png`,
-            type: "image/png",
+            src: `${dest_root}DefaultImage.svg`,
+            type: "image/svg+xml",
             sizes: "512x512",
             purpose: "any maskable"
           }

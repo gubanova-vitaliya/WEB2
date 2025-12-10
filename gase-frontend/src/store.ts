@@ -1,11 +1,15 @@
 import { configureStore, combineReducers } from "@reduxjs/toolkit";
 import gasCalculationReducer from "./slices/dataSlice";
+import gasReducer from "./slices/gasSlice";
+import cartReducer from "./slices/cartSlice";
 
 // Объединение всех редьюсеров
 const rootReducer = combineReducers({
-  gasCalculation: gasCalculationReducer
+  gasCalculation: gasCalculationReducer,
+  gas: gasReducer,
+  cart: cartReducer
   // Здесь можно добавить другие редьюсеры
-  // например: cart: cartReducer, user: userReducer
+  // например: user: userReducer
 });
 
 // Создание и настройка хранилища
