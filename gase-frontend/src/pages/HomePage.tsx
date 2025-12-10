@@ -1,24 +1,46 @@
 import { FC } from "react";
+import { Carousel } from "react-bootstrap";
 import "./HomePage.css";
 
-const introVideoSrc =
-  "https://cdn.pixabay.com/video/2020/08/05/46818-447229696_large.mp4";
-
 export const HomePage: FC = () => {
+  const slides = [
+    {
+      id: 1,
+      src: "/carousel-1.svg",
+      alt: "Каталог Газов",
+      title: "Каталог Газов"
+    },
+    {
+      id: 2,
+      src: "/carousel-2.svg",
+      alt: "Промышленные Газы",
+      title: "Промышленные Газы"
+    },
+    {
+      id: 3,
+      src: "/carousel-3.svg",
+      alt: "Научные Расчеты",
+      title: "Научные Расчеты"
+    }
+  ];
+
   return (
     <div className="home-page">
       <section className="hero">
-        <div className="hero-video">
-          <video
-            className="intro-video"
-            src={introVideoSrc}
-            playsInline
-            autoPlay
-            loop
-            muted
-            poster="/slide1.svg"
-          />
-          <div className="video-overlay" />
+        <div className="carousel-container">
+          <Carousel fade interval={4000} pause="hover" className="custom-carousel">
+            {slides.map((slide) => (
+              <Carousel.Item key={slide.id}>
+                <div className="carousel-image-wrapper">
+                  <img
+                    className="carousel-image"
+                    src={slide.src}
+                    alt={slide.alt}
+                  />
+                </div>
+              </Carousel.Item>
+            ))}
+          </Carousel>
         </div>
       </section>
     </div>
