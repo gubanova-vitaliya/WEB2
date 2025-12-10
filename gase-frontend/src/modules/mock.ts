@@ -1,7 +1,6 @@
 import { Gas } from "../components/GasCard";
 import { getDestRoot } from "../../target_config";
 
-<<<<<<< HEAD
 const createGasesMock = (): Gas[] => {
   const destRoot = getDestRoot();
   
@@ -14,12 +13,11 @@ const createGasesMock = (): Gas[] => {
       const base = destRoot.endsWith('/') ? destRoot : destRoot + '/';
       path = base + imageName;
     }
-    // Логируем путь для отладки (только в development)
-    if (import.meta.env.DEV) {
-      console.log(`Image path for ${imageName}:`, path);
-    }
     return path;
   };
+  
+  // Используем gas-images/i.webp (с 's'), так как файл находится в public/gas-images/
+  const defaultImagePath = getImagePath('gas-images/i.webp');
   
   return [
     {
@@ -27,7 +25,7 @@ const createGasesMock = (): Gas[] => {
       title: "Водород",
       formula: "H₂",
       molar_mass: 2.016,
-      image_url: getImagePath('gas-image/i.webp'),
+      image_url: defaultImagePath,
       description: "Самый легкий химический элемент, бесцветный газ без запаха и вкуса.",
     },
     {
@@ -35,7 +33,7 @@ const createGasesMock = (): Gas[] => {
       title: "Кислород",
       formula: "O₂",
       molar_mass: 32.0,
-      image_url: getImagePath('gas-image/i.webp'),
+      image_url: defaultImagePath,
       description: "Жизненно важный газ, необходимый для дыхания большинства живых организмов.",
     },
     {
@@ -43,7 +41,7 @@ const createGasesMock = (): Gas[] => {
       title: "Азот",
       formula: "N₂",
       molar_mass: 28.014,
-      image_url: getImagePath('gas-image/i.webp'),
+      image_url: defaultImagePath,
       description: "Инертный газ, составляющий основную часть атмосферы Земли.",
     },
     {
@@ -51,7 +49,7 @@ const createGasesMock = (): Gas[] => {
       title: "Углекислый газ",
       formula: "CO₂",
       molar_mass: 44.01,
-      image_url: getImagePath('gas-image/i.webp'),
+      image_url: defaultImagePath,
       description: "Газ, образующийся при дыхании и сжигании органических веществ.",
     },
     {
@@ -59,7 +57,7 @@ const createGasesMock = (): Gas[] => {
       title: "Метан",
       formula: "CH₄",
       molar_mass: 16.043,
-      image_url: getImagePath('gas-image/i.webp'),
+      image_url: defaultImagePath,
       description: "Основной компонент природного газа, простейший углеводород.",
     },
     {
@@ -67,62 +65,10 @@ const createGasesMock = (): Gas[] => {
       title: "Гелий",
       formula: "He",
       molar_mass: 4.003,
-      image_url: getImagePath('gas-image/i.webp'),
+      image_url: defaultImagePath,
       description: "Инертный газ, второй по легкости элемент, используется в воздушных шарах.",
     },
   ];
 };
 
 export const GASES_MOCK: Gas[] = createGasesMock();
-=======
-export const GASES_MOCK: Gas[] = [
-  {
-    id: 1,
-    title: "Водород",
-    formula: "H₂",
-    molar_mass: 2.016,
-    image_url: "/gas-images/i.webp",
-    description: "Самый легкий химический элемент, бесцветный газ без запаха и вкуса.",
-  },
-  {
-    id: 2,
-    title: "Кислород",
-    formula: "O₂",
-    molar_mass: 32.0,
-    image_url: "/gas-images/i.webp",
-    description: "Жизненно важный газ, необходимый для дыхания большинства живых организмов.",
-  },
-  {
-    id: 3,
-    title: "Азот",
-    formula: "N₂",
-    molar_mass: 28.014,
-    image_url: "/gas-images/i.webp",
-    description: "Инертный газ, составляющий основную часть атмосферы Земли.",
-  },
-  {
-    id: 4,
-    title: "Углекислый газ",
-    formula: "CO₂",
-    molar_mass: 44.01,
-    image_url: "/gas-images/i.webp",
-    description: "Газ, образующийся при дыхании и сжигании органических веществ.",
-  },
-  {
-    id: 5,
-    title: "Метан",
-    formula: "CH₄",
-    molar_mass: 16.043,
-    image_url: "/gas-images/i.webp",
-    description: "Основной компонент природного газа, простейший углеводород.",
-  },
-  {
-    id: 6,
-    title: "Гелий",
-    formula: "He",
-    molar_mass: 4.003,
-    image_url: "/gas-images/i.webp",
-    description: "Инертный газ, второй по легкости элемент, используется в воздушных шарах.",
-  },
-];
->>>>>>> origin/react-frontend

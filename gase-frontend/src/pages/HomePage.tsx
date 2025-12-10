@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import { FC, useState, useEffect } from "react";
 import "./HomePage.css";
 import { getDestRoot } from "../../target_config";
@@ -16,21 +15,24 @@ export const HomePage: FC = () => {
     return base + imageName;
   };
 
+  // Версия для обхода кеша (измените при обновлении изображений)
+  const IMAGE_VERSION = 'v2';
+
   const carouselItems = [
     {
-      src: getImagePath('slide1.svg'),
+      src: `${getImagePath('slide1.svg')}?v=${IMAGE_VERSION}`,
       alt: "Каталог Газов",
       title: "Каталог Газов",
       description: "Молекулы H₂, O₂, N₂"
     },
     {
-      src: getImagePath('slide2.svg'),
+      src: `${getImagePath('slide2.svg')}?v=${IMAGE_VERSION}`,
       alt: "Промышленные Газы",
       title: "Промышленные Газы",
       description: "Газовые баллоны"
     },
     {
-      src: getImagePath('slide3.svg'),
+      src: `${getImagePath('slide3.svg')}?v=${IMAGE_VERSION}`,
       alt: "Научные Расчеты",
       title: "Научные Расчеты",
       description: "Точные расчеты молярных масс"
@@ -58,39 +60,10 @@ export const HomePage: FC = () => {
     setCurrentSlide((prev) => (prev + 1) % carouselItems.length);
   };
 
-=======
-import { FC } from "react";
-import { Carousel } from "react-bootstrap";
-import "./HomePage.css";
-
-export const HomePage: FC = () => {
-  const slides = [
-    {
-      id: 1,
-      src: "/carousel-1.svg",
-      alt: "Каталог Газов",
-      title: "Каталог Газов"
-    },
-    {
-      id: 2,
-      src: "/carousel-2.svg",
-      alt: "Промышленные Газы",
-      title: "Промышленные Газы"
-    },
-    {
-      id: 3,
-      src: "/carousel-3.svg",
-      alt: "Научные Расчеты",
-      title: "Научные Расчеты"
-    }
-  ];
-
->>>>>>> origin/react-frontend
   return (
     <div className="home-page">
       <section className="hero">
         <div className="carousel-container">
-<<<<<<< HEAD
           <div className="carousel-wrapper">
             {carouselItems.map((item, index) => (
               <div
@@ -102,10 +75,10 @@ export const HomePage: FC = () => {
                   alt={item.alt} 
                   className="carousel-image"
                   onError={(e) => {
-                    // Fallback на DefaultImage если carousel изображение не найдено
+                    // Fallback на slide1.svg если carousel изображение не найдено
                     const target = e.target as HTMLImageElement;
-                    if (!target.src.includes('DefaultImage')) {
-                      target.src = getImagePath('DefaultImage.svg');
+                    if (!target.src.includes('slide1.svg')) {
+                      target.src = getImagePath('slide1.svg');
                     }
                   }}
                 />
@@ -144,21 +117,6 @@ export const HomePage: FC = () => {
               />
             ))}
           </div>
-=======
-          <Carousel fade interval={4000} pause="hover" className="custom-carousel">
-            {slides.map((slide) => (
-              <Carousel.Item key={slide.id}>
-                <div className="carousel-image-wrapper">
-                  <img
-                    className="carousel-image"
-                    src={slide.src}
-                    alt={slide.alt}
-                  />
-                </div>
-              </Carousel.Item>
-            ))}
-          </Carousel>
->>>>>>> origin/react-frontend
         </div>
       </section>
     </div>

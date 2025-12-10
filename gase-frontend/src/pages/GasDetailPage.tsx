@@ -4,7 +4,9 @@ import { useParams } from "react-router-dom";
 import { Gas } from "../components/GasCard";
 import { getGasById } from "../modules/gasApi";
 import { Spinner } from "react-bootstrap";
-import defaultImage from "/DefaultImage.svg";
+
+// Используем одно из существующих изображений как fallback
+const defaultImage = "/slide1.svg";
 
 export const GasDetailPage: FC = () => {
   const [pageData, setPageData] = useState<Gas | null>(null);

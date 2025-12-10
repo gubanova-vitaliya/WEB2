@@ -1,7 +1,9 @@
 import { FC } from "react";
 import { Card, Button } from "react-bootstrap";
 import "./GasCard.css";
-import defaultImage from "/DefaultImage.svg";
+
+// Используем одно из существующих изображений как fallback
+const defaultImage = "/slide1.svg";
 
 export interface Gas {
   id: number;
@@ -22,7 +24,7 @@ export const GasCard: FC<GasCardProps> = ({ gas, onCardClick }) => {
     const target = e.target as HTMLImageElement;
     // Логируем ошибку для отладки
     console.warn(`Failed to load image: ${target.src}, falling back to default image`);
-    if (target.src !== defaultImage && !target.src.includes('DefaultImage')) {
+    if (target.src !== defaultImage && !target.src.includes('slide1.svg')) {
       target.src = defaultImage;
     }
   };
