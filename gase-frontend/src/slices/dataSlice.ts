@@ -1,57 +1,76 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-
-// Тип для данных (можно расширить под ваши нужды)
-export interface DataItem {
-  id: number;
-  [key: string]: any;
-}
+import { Gas } from "../components/GasCard";
 
 // Тип для начального состояния
-interface DataState {
-  Data: DataItem[];
+interface GasCalculationState {
+  Gases: Gas[];
+  CalculationTotal: number; // Общая молярная масса для расчетов
 }
 
 // Начальное состояние
-const initialState: DataState = {
-  Data: []
+// Можно задать начальные данные или оставить пустым для загрузки через AJAX
+const initialState: GasCalculationState = {
+  Gases: [
+    // Пример начальных данных газов (можно удалить, если загружаете через AJAX)
+    {
+      id: 1,
+      title: "Водород",
+      formula: "H₂",
+      molar_mass: 2.016,
+      description: "Самый легкий химический элемент, бесцветный газ без запаха и вкуса."
+    },
+    {
+      id: 2,
+      title: "Кислород",
+      formula: "O₂",
+      molar_mass: 32.0,
+      description: "Жизненно важный газ, необходимый для дыхания большинства живых организмов."
+    }
+  ],
+  CalculationTotal: 0, // Начальная общая молярная масса для расчетов
 };
 
 // Создание слайса
-const dataSlice = createSlice({
-  name: "data",
+const gasCalculationSlice = createSlice({
+  name: "gasCalculation",
   initialState,
   // Редьюсеры в слайсах мутируют состояние и ничего не возвращают наружу
   reducers: {
-    setData(state, action: PayloadAction<DataItem[]>) {
-      state.Data = action.payload;
+    // Изменяем состояние на полученные данные газов
+    setGases(state, action: PayloadAction<Gas[]>) {
+      state.Gases = action.payload;
     },
-    // Можно добавить дополнительные редьюсеры
-    addDataItem(state, action: PayloadAction<DataItem>) {
-      state.Data.push(action.payload);
+    // Суммируем молярные массы выбранных газов для расчетов
+    addToCalculation(state, action: PayloadAction<number>) {
+      state.CalculationTotal += action.payload;
     },
-    removeDataItem(state, action: PayloadAction<number>) {
-      state.Data = state.Data.filter(item => item.id !== action.payload);
+    // Обнуляем общую молярную массу расчетов
+    clearCalculation(state) {
+      state.CalculationTotal = 0;
     },
-    clearData(state) {
-      state.Data = [];
+    // Дополнительные редьюсеры (можно использовать позже)
+    addGas(state, action: PayloadAction<Gas>) {
+      state.Gases.push(action.payload);
+    },
+    removeGas(state, action: PayloadAction<number>) {
+      state.Gases = state.Gases.filter(gas => gas.id !== action.payload);
+    },
+    clearGases(state) {
+      state.Gases = [];
     }
   }
 });
 
 // Экспорт действий (actions)
 export const {
-  setData: setDataAction,
-  addDataItem: addDataItemAction,
-  removeDataItem: removeDataItemAction,
-  clearData: clearDataAction
-} = dataSlice.actions;
-
-// Пользовательский хук для получения данных из хранилища
-// Используйте useAppSelector из hooks/useTypedRedux.ts для типизированного доступа
-// Пример:
-// import { useAppSelector } from '../hooks/useTypedRedux';
-// const data = useAppSelector(state => state.ourData.Data);
+  setGases: setGasesAction,
+  addToCalculation: addToCalculationAction,
+  clearCalculation: clearCalculationAction,
+  addGas: addGasAction,
+  removeGas: removeGasAction,
+  clearGases: clearGasesAction
+} = gasCalculationSlice.actions;
 
 // Экспорт редьюсера
-export default dataSlice.reducer;
+export default gasCalculationSlice.reducer;
 
