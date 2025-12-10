@@ -9,6 +9,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
+	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -47,7 +49,24 @@ func (a *Application) RunApp() {
 	a.Router.POST("/sign_up", a.Register)
 	a.Router.GET("/ping", a.Ping)
 
-	serverAddress := fmt.Sprintf("%s:%d", a.Config.ServiceHost, a.Config.ServicePort)
+	// Для production используем PORT из переменных окружения (Railway, Render и т.д.)
+	port := a.Config.ServicePort
+	if envPort := os.Getenv("PORT"); envPort != "" {
+		if p, err := strconv.Atoi(envPort); err == nil {
+			port = p
+			logrus.Infof("Using PORT from environment: %d", port)
+		}
+	}
+
+	// Для production используем 0.0.0.0 чтобы принимать запросы извне
+	host := a.Config.ServiceHost
+	if host == "localhost" && os.Getenv("PORT") != "" {
+		host = "0.0.0.0"
+		logrus.Infof("Using 0.0.0.0 for production deployment")
+	}
+
+	serverAddress := fmt.Sprintf("%s:%d", host, port)
+	logrus.Infof("Starting server on %s", serverAddress)
 	if err := a.Router.Run(serverAddress); err != nil {
 		logrus.Fatal(err)
 	}

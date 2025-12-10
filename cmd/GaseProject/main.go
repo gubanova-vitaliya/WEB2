@@ -41,8 +41,30 @@ func getEnvOrDefault(key, defaultValue string) string {
 // @in header
 // @name Authorization
 // @description JWT Token
+// CORS middleware для разрешения запросов с GitHub Pages и других доменов
+func corsMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		// Разрешаем запросы с любых доменов (для GitHub Pages)
+		// В production можно ограничить конкретными доменами
+		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
+		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With")
+		c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS, GET, PUT, DELETE, PATCH")
+
+		if c.Request.Method == "OPTIONS" {
+			c.AbortWithStatus(204)
+			return
+		}
+
+		c.Next()
+	}
+}
+
 func main() {
 	router := gin.Default()
+
+	// Добавляем CORS middleware для всех запросов
+	router.Use(corsMiddleware())
 
 	// Добавляем Swagger
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
