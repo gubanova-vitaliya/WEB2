@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import { FC, useState, useEffect } from "react";
 import "./HomePage.css";
 import { getDestRoot } from "../../target_config";
@@ -57,10 +58,39 @@ export const HomePage: FC = () => {
     setCurrentSlide((prev) => (prev + 1) % carouselItems.length);
   };
 
+=======
+import { FC } from "react";
+import { Carousel } from "react-bootstrap";
+import "./HomePage.css";
+
+export const HomePage: FC = () => {
+  const slides = [
+    {
+      id: 1,
+      src: "/carousel-1.svg",
+      alt: "Каталог Газов",
+      title: "Каталог Газов"
+    },
+    {
+      id: 2,
+      src: "/carousel-2.svg",
+      alt: "Промышленные Газы",
+      title: "Промышленные Газы"
+    },
+    {
+      id: 3,
+      src: "/carousel-3.svg",
+      alt: "Научные Расчеты",
+      title: "Научные Расчеты"
+    }
+  ];
+
+>>>>>>> origin/react-frontend
   return (
     <div className="home-page">
       <section className="hero">
         <div className="carousel-container">
+<<<<<<< HEAD
           <div className="carousel-wrapper">
             {carouselItems.map((item, index) => (
               <div
@@ -114,6 +144,21 @@ export const HomePage: FC = () => {
               />
             ))}
           </div>
+=======
+          <Carousel fade interval={4000} pause="hover" className="custom-carousel">
+            {slides.map((slide) => (
+              <Carousel.Item key={slide.id}>
+                <div className="carousel-image-wrapper">
+                  <img
+                    className="carousel-image"
+                    src={slide.src}
+                    alt={slide.alt}
+                  />
+                </div>
+              </Carousel.Item>
+            ))}
+          </Carousel>
+>>>>>>> origin/react-frontend
         </div>
       </section>
     </div>

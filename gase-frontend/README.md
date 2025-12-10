@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 # Gase Frontend
+=======
+# Gas Project Frontend
+>>>>>>> origin/react-frontend
 
 React приложение для работы с газами и расчетами.
 

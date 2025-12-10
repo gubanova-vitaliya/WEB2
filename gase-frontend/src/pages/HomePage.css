@@ -24,6 +24,7 @@
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
 }
 
+<<<<<<< HEAD
 .carousel-wrapper {
   position: relative;
   width: 100%;
@@ -52,10 +53,37 @@
 .carousel-image {
   width: 100%;
   height: 100%;
+=======
+.custom-carousel {
+  width: 100%;
+}
+
+.custom-carousel .carousel-inner {
+  border-radius: 24px;
+  overflow: hidden;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+}
+
+.carousel-image-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 500px;
+  padding: 40px;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+}
+
+.carousel-image {
+  max-width: 100%;
+  max-height: 500px;
+  width: auto;
+  height: auto;
+>>>>>>> origin/react-frontend
   object-fit: contain;
   display: block;
 }
 
+<<<<<<< HEAD
 .carousel-content {
   position: absolute;
   bottom: 0;
@@ -148,6 +176,54 @@
 }
 
 /* Адаптивность для планшетов */
+=======
+.custom-carousel .carousel-control-prev,
+.custom-carousel .carousel-control-next {
+  width: 50px;
+  height: 50px;
+  background-color: rgba(0, 0, 0, 0.5);
+  border-radius: 50%;
+  top: 50%;
+  transform: translateY(-50%);
+  opacity: 0.7;
+  transition: opacity 0.3s ease, background-color 0.3s ease;
+}
+
+.custom-carousel .carousel-control-prev {
+  left: 20px;
+}
+
+.custom-carousel .carousel-control-next {
+  right: 20px;
+}
+
+.custom-carousel .carousel-control-prev:hover,
+.custom-carousel .carousel-control-next:hover {
+  opacity: 1;
+  background-color: rgba(0, 0, 0, 0.8);
+}
+
+.custom-carousel .carousel-indicators {
+  margin-bottom: 20px;
+}
+
+.custom-carousel .carousel-indicators button {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.5);
+  border: 2px solid rgba(255, 255, 255, 0.8);
+  margin: 0 5px;
+  transition: all 0.3s ease;
+}
+
+.custom-carousel .carousel-indicators button.active {
+  background-color: rgba(255, 255, 255, 1);
+  transform: scale(1.2);
+}
+
+
+>>>>>>> origin/react-frontend
 @media (max-width: 768px) {
   .hero {
     padding: 20px 15px;
@@ -235,5 +311,28 @@
   
   .carousel-indicator.active {
     width: 25px;
+  }
+
+  .carousel-image-wrapper {
+    min-height: 300px;
+    padding: 20px;
+  }
+
+  .carousel-image {
+    max-height: 300px;
+  }
+
+  .custom-carousel .carousel-control-prev,
+  .custom-carousel .carousel-control-next {
+    width: 40px;
+    height: 40px;
+  }
+
+  .custom-carousel .carousel-control-prev {
+    left: 10px;
+  }
+
+  .custom-carousel .carousel-control-next {
+    right: 10px;
   }
 }
