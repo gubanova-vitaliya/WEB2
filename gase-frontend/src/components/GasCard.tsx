@@ -4,8 +4,30 @@ import { useAppDispatch } from "../store/hooks";
 import { addToCart, useCartItemCount } from "../store/slices/cartSlice";
 import { Gas } from "../store/slices/gasSlice";
 import "./GasCard.css";
-import defaultImage from "/DefaultImage.svg";
+import { getDestRoot } from "../../target_config";
 
+// Получаем базовый путь для правильного формирования путей
+const getDefaultImage = () => {
+  const destRoot = getDestRoot();
+  if (destRoot === '') {
+    return '/slide1.svg';
+  }
+  const base = destRoot.endsWith('/') ? destRoot : destRoot + '/';
+  return base + 'slide1.svg';
+};
+
+<<<<<<< HEAD
+=======
+export interface Gas {
+  id: number;
+  title: string;
+  formula: string;
+  molar_mass: number;
+  image_url?: string | null;
+  description?: string;
+}
+
+>>>>>>> adaptive-deployment
 interface GasCardProps {
   gas: Gas;
   onCardClick: (id: number) => void;
@@ -17,8 +39,11 @@ export const GasCard: FC<GasCardProps> = ({ gas, onCardClick }) => {
 
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
     const target = e.target as HTMLImageElement;
-    if (target.src !== defaultImage) {
-      target.src = defaultImage;
+    // Логируем ошибку для отладки
+    console.warn(`Failed to load image: ${target.src}, falling back to default image`);
+    const defaultImagePath = getDefaultImage();
+    if (target.src !== defaultImagePath && !target.src.includes('slide1.svg')) {
+      target.src = defaultImagePath;
     }
   };
 
@@ -29,15 +54,15 @@ export const GasCard: FC<GasCardProps> = ({ gas, onCardClick }) => {
 
   return (
     <Card className="gas-card">
-      <Card.Img
-        className="card-image"
-        variant="top"
-        src={gas.image_url || defaultImage}
-        alt={gas.title}
-        onClick={() => onCardClick(gas.id)}
-        onError={handleImageError}
-        style={{ cursor: "pointer" }}
-      />
+            <Card.Img
+              className="card-image"
+              variant="top"
+              src={gas.image_url || getDefaultImage()}
+              alt={gas.title}
+              onClick={() => onCardClick(gas.id)}
+              onError={handleImageError}
+              style={{ cursor: "pointer" }}
+            />
       <Card.Body>
         <div className="text-style">
           <Card.Title>{gas.title}</Card.Title>
