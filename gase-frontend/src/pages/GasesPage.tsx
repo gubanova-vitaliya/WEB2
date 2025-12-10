@@ -29,18 +29,15 @@ export const GasesPage: FC = () => {
     <div className="gases-page">
       <div className="page-header">
           <h1>{ROUTE_LABELS.GASES}</h1>
-        <a
-          href="#"
+        <button
+          type="button"
           className={`cart-link ${cartCount > 0 ? "active" : "inactive"}`}
-          onClick={(e) => {
-            e.preventDefault();
-            setShowCartModal(true);
-          }}
+          onClick={() => setShowCartModal(true)}
         >
           <span className="cart-icon">📋</span>
           Журнал расчетов
           <span className="cart-count">{cartCount}</span>
-        </a>
+        </button>
       </div>
 
       <GasFilters />

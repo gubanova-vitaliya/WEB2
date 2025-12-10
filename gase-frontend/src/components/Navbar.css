@@ -31,7 +31,7 @@
   box-shadow: none;
 }
 
-/* Адаптивность для мобильных устройств */
+/* Адаптивность для планшетов */
 @media (max-width: 768px) {
   .app-navbar .navbar-brand {
     font-size: 1.3rem;
@@ -39,25 +39,53 @@
   
   .app-navbar .navbar-collapse {
     margin-top: 1rem;
+    background-color: rgba(33, 37, 41, 0.98);
+    border-radius: 8px;
+    padding: 0.5rem 0;
   }
   
   .app-navbar .nav-link {
     padding: 0.75rem 1rem;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    transition: background-color 0.2s ease;
+  }
+  
+  .app-navbar .nav-link:hover {
+    background-color: rgba(255, 255, 255, 0.1);
   }
   
   .app-navbar .nav-link:last-child {
     border-bottom: none;
   }
+  
+  .app-navbar .navbar-toggler {
+    padding: 0.4rem 0.6rem;
+  }
 }
 
+/* Адаптивность для мобильных устройств */
 @media (max-width: 480px) {
+  .app-navbar {
+    padding: 0.5rem 1rem;
+  }
+  
   .app-navbar .navbar-brand {
-    font-size: 1.2rem;
+    font-size: 1.1rem;
+    padding: 0.25rem 0;
+  }
+  
+  .app-navbar .navbar-collapse {
+    margin-top: 0.75rem;
+    padding: 0.25rem 0;
   }
   
   .app-navbar .nav-link {
     padding: 0.6rem 0.8rem;
     font-size: 0.95rem;
+  }
+  
+  .app-navbar .navbar-toggler {
+    padding: 0.3rem 0.5rem;
+    font-size: 1rem;
   }
 }

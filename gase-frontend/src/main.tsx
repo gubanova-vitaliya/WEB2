@@ -20,5 +20,20 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
 )
 
 if ("serviceWorker" in navigator) {
-  registerSW()
+  registerSW({
+    onNeedRefresh() {
+      // Показываем уведомление о необходимости обновления
+      console.log("New content available, please refresh");
+    },
+    onOfflineReady() {
+      // Приложение готово к работе оффлайн
+      console.log("App ready to work offline");
+    },
+    onRegistered(registration) {
+      console.log("Service Worker registered:", registration);
+    },
+    onRegisterError(error) {
+      console.error("Service Worker registration error:", error);
+    }
+  })
 }

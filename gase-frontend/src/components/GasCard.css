@@ -1,11 +1,15 @@
 .gas-card {
-  padding: 8px;
+  flex: 1 1 300px;
+  padding: 15px;
   height: 100%;
   display: flex;
   flex-direction: column;
   transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
   border-radius: 12px;
   overflow: hidden;
+  background-color: white;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e0e0e0;
 }
 
 .gas-card:hover {
@@ -52,10 +56,11 @@
   transform: translateY(-1px);
 }
 
-/* Адаптивность для мобильных устройств */
+/* Адаптивность для планшетов */
 @media (max-width: 768px) {
   .gas-card {
-    padding: 6px;
+    flex: 1 1 280px;
+    padding: 12px;
   }
   
   .card-image {
@@ -72,23 +77,41 @@
   }
 }
 
+/* Адаптивность для мобильных устройств */
 @media (max-width: 480px) {
   .gas-card {
-    padding: 4px;
+    flex: 1 1 100%;
+    padding: 15px;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px 0;
   }
   
   .card-image {
-    height: 120px;
+    width: 100%;
+    height: auto;
+    max-height: 200px;
+    object-fit: contain;
   }
   
   .text-style {
-    margin-bottom: 6px;
-    font-size: 0.9rem;
+    margin-bottom: 10px;
+    font-size: 0.95rem;
+    width: 100%;
+    text-align: center;
+  }
+  
+  .text-style.description {
+    max-height: none;
+    -webkit-line-clamp: unset;
+    text-align: left;
   }
   
   .card-button {
-    font-size: 0.9rem;
-    padding: 8px 12px;
+    font-size: 0.95rem;
+    padding: 10px 15px;
+    width: 100%;
+    margin-top: 10px;
   }
 }
 
