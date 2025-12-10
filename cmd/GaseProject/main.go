@@ -7,13 +7,21 @@ import (
 	"WEB/internal/app/handler"
 	"WEB/internal/app/repository"
 	"WEB/internal/pkg"
-	"fmt"
+	"os"
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
+
+// getEnvOrDefault возвращает значение переменной окружения или значение по умолчанию
+func getEnvOrDefault(key, defaultValue string) string {
+	if value := os.Getenv(key); value != "" {
+		return value
+	}
+	return defaultValue
+}
 
 // @title GaseProject API
 // @version 1.0
@@ -45,7 +53,11 @@ func main() {
 	}
 
 	postgresString := dsn.FromEnv()
-	fmt.Println(postgresString)
+	logrus.Infof("Database connection string: host=%s port=%s user=%s dbname=%s",
+		getEnvOrDefault("DB_HOST", "localhost"),
+		getEnvOrDefault("DB_PORT", "5432"),
+		getEnvOrDefault("DB_USER", "postgres"),
+		getEnvOrDefault("DB_NAME", "lab2"))
 
 	rep, err := repository.New(postgresString)
 	if err != nil {

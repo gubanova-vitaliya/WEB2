@@ -6,6 +6,8 @@ import (
 	"WEB/internal/app/role"
 	"errors"
 	"net/http"
+	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -64,11 +66,49 @@ func (h *Handler) RegisterHandler(router *gin.Engine) {
 	router.POST("/calculation/:id/submit", h.SubmitCalculation)
 }
 
+// findProjectRoot ищет корень проекта, проверяя наличие папки templates
+func findProjectRoot() string {
+	// Получаем текущую рабочую директорию
+	wd, err := os.Getwd()
+	if err != nil {
+		return "."
+	}
+
+	// Проверяем возможные пути к корню проекта
+	paths := []string{
+		wd,                         // текущая директория
+		filepath.Join(wd, ".."),    // на уровень выше
+		filepath.Join(wd, "../.."), // на два уровня выше
+	}
+
+	for _, path := range paths {
+		templatesPath := filepath.Join(path, "templates")
+		if _, err := os.Stat(templatesPath); err == nil {
+			return path
+		}
+	}
+
+	// Если не нашли, возвращаем текущую директорию
+	return wd
+}
+
 // RegisterStatic То же самое, что и с маршрутами, регистрируем статику
 func (h *Handler) RegisterStatic(router *gin.Engine) {
-	router.LoadHTMLGlob("templates/*.html")
-	router.Static("/static", "./resources")
-	router.Static("/images", "./resources/images")
+	root := findProjectRoot()
+	templatesPath := filepath.Join(root, "templates", "*.html")
+	resourcesPath := filepath.Join(root, "resources")
+	imagesPath := filepath.Join(root, "resources", "images")
+
+	// Загружаем шаблоны (LoadHTMLGlob не возвращает ошибку, паникует если не найдено)
+	router.LoadHTMLGlob(templatesPath)
+
+	// Регистрируем статические файлы
+	if _, err := os.Stat(resourcesPath); err == nil {
+		router.Static("/static", resourcesPath)
+	}
+	if _, err := os.Stat(imagesPath); err == nil {
+		router.Static("/images", imagesPath)
+	}
 }
 
 // RegisterAPI регистрирует REST API с префиксом /api

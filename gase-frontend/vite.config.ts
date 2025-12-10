@@ -20,6 +20,23 @@ const api_proxy_addr = process.env.VITE_API_URL || 'http://localhost:8080';
 const notes_api_addr = process.env.VITE_NOTES_API_URL || 'http://localhost:8081';
 const img_proxy_addr = process.env.VITE_IMG_PROXY_URL || 'http://localhost:8080';
 
+// Плагин для копирования index.html в 404.html для GitHub Pages
+const copy404Plugin = () => {
+  return {
+    name: 'copy-404',
+    writeBundle() {
+      const distPath = path.resolve(__dirname, 'dist');
+      const indexPath = path.join(distPath, 'index.html');
+      const html404Path = path.join(distPath, '404.html');
+      
+      if (fs.existsSync(indexPath)) {
+        fs.copyFileSync(indexPath, html404Path);
+        console.log('✅ 404.html создан для GitHub Pages');
+      }
+    }
+  };
+};
+
 export default defineConfig(({ command, mode }) => {
   // При сборке (build) всегда используем путь репозитория для GitHub Pages
   const shouldUseGitHubPages = isGitHubPages || (command === 'build' && mode === 'production');
@@ -28,7 +45,15 @@ export default defineConfig(({ command, mode }) => {
   return {
   plugins: [
     react(),
-    mkcert(),
+    mkcert({
+      // Автоматически создавать сертификаты для localhost и IP адресов
+      // Это позволит работать на мобильных устройствах в локальной сети
+      hosts: ['localhost', '127.0.0.1'],
+      // Автоматически добавлять IP адреса локальной сети
+      autoUpgrade: true,
+    }),
+    // Копируем index.html в 404.html для GitHub Pages SPA support
+    ...(command === 'build' ? [copy404Plugin()] : []),
     VitePWA({
       registerType: 'autoUpdate',
       devOptions: {
@@ -91,22 +116,9 @@ export default defineConfig(({ command, mode }) => {
   server: {
     port: 3000,
     strictPort: false, // Позволяет использовать другой порт, если 3000 занят
-    https: (() => {
-      const certKeyPath = path.resolve(__dirname, 'cert.key');
-      const certCrtPath = path.resolve(__dirname, 'cert.crt');
-      
-      if (fs.existsSync(certKeyPath) && fs.existsSync(certCrtPath)) {
-        return {
-          key: fs.readFileSync(certKeyPath),
-          cert: fs.readFileSync(certCrtPath),
-        };
-      } else {
-        console.warn('⚠️  HTTPS сертификаты не найдены!');
-        console.warn('📖 Для настройки HTTPS см. HTTPS_SETUP.md');
-        console.warn('🔧 Запуск без HTTPS (PWA может не работать на мобильных устройствах)');
-        return undefined;
-      }
-    })(),
+    // Для production сборки HTTPS не нужен - GitHub Pages предоставляет его автоматически
+    // Для dev режима vite-plugin-mkcert автоматически настроит HTTPS
+    https: command === 'build' ? undefined : true,
     proxy: {
       "/api": {
         target: api_proxy_addr,
@@ -143,7 +155,6 @@ export default defineConfig(({ command, mode }) => {
       usePolling: true,
     },
     host: true,
-    strictPort: false, // Позволяет использовать другой порт, если 3000 занят
   },
   };
 });
