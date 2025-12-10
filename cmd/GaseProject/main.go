@@ -8,7 +8,10 @@ import (
 	"WEB/internal/app/repository"
 	"WEB/internal/pkg"
 	"fmt"
+	"strings"
+	"time"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	swaggerFiles "github.com/swaggo/files"
@@ -35,6 +38,58 @@ import (
 // @description JWT Token
 func main() {
 	router := gin.Default()
+
+	// Настраиваем CORS middleware
+	// Используем AllowOriginFunc для поддержки динамических IP адресов
+	router.Use(cors.New(cors.Config{
+		AllowOriginFunc: func(origin string) bool {
+			// Разрешаем запросы без Origin (например, из Tauri или прямые запросы)
+			if origin == "" {
+				return true
+			}
+
+			// Разрешаем localhost и 127.0.0.1 на любых портах
+			if strings.HasPrefix(origin, "http://localhost:") ||
+				strings.HasPrefix(origin, "http://127.0.0.1:") {
+				return true
+			}
+
+			// Разрешаем локальные IP адреса (192.168.x.x, 10.x.x.x, 172.16-18.x.x)
+			// Проверяем паттерны локальных сетей
+			if strings.HasPrefix(origin, "http://192.168.") ||
+				strings.HasPrefix(origin, "http://10.") ||
+				strings.HasPrefix(origin, "http://172.16.") ||
+				strings.HasPrefix(origin, "http://172.17.") ||
+				strings.HasPrefix(origin, "http://172.18.") {
+				return true
+			}
+
+			return false
+		},
+		AllowMethods: []string{
+			"GET",
+			"POST",
+			"PUT",
+			"PATCH",
+			"DELETE",
+			"HEAD",
+			"OPTIONS",
+		},
+		AllowHeaders: []string{
+			"Origin",
+			"Content-Length",
+			"Content-Type",
+			"Authorization",
+			"Accept",
+			"X-Requested-With",
+		},
+		ExposeHeaders: []string{
+			"Content-Length",
+			"Content-Type",
+		},
+		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
+	}))
 
 	// Добавляем Swagger
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))

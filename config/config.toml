@@ -1,4 +1,4 @@
-ServiceHost = "localhost"
+ServiceHost = "0.0.0.0"  # 0.0.0.0 для доступа из сети, localhost - только локально
 ServicePort = 8080
 
 # JWT настройки

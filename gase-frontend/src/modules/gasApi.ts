@@ -10,9 +10,17 @@ export interface GasFilters {
 const transformImageUrl = (imageUrl: string | null): string | null => {
   if (!imageUrl) return null;
   
-  // Если URL указывает на MinIO (localhost:9000 или 127.0.0.1:9000), заменяем на прокси
-  if (imageUrl.includes('localhost:9000') || imageUrl.includes('127.0.0.1:9000')) {
-    // Извлекаем путь после домена (например: /gase/azot.webp)
+  const imgProxy = getDestImg();
+  
+  // Если URL уже содержит адрес прокси, оставляем как есть
+  if (imgProxy && imageUrl.includes(imgProxy)) {
+    return imageUrl;
+  }
+  
+  // Если URL указывает на MinIO (localhost:9000, 127.0.0.1:9000, или IP:9000), заменяем на прокси
+  const minioPattern = /(localhost|127\.0\.0\.1|\d+\.\d+\.\d+\.\d+):9000/;
+  if (minioPattern.test(imageUrl)) {
+    // Извлекаем путь после домена (например: /gases/azot.webp или /gase/azot.webp)
     const urlParts = imageUrl.split('/');
     const pathIndex = urlParts.findIndex(part => part === 'gase' || part === 'gases');
     
@@ -24,8 +32,22 @@ const transformImageUrl = (imageUrl: string | null): string | null => {
         path = path.replace('gase/', 'gases/');
       }
       
-      return `${getDestImg()}/minio/${path}`;
+      // Используем прокси через Go backend API
+      if (imgProxy && imgProxy !== '') {
+        return `${imgProxy}/api/minio/${path}`;
+      } else {
+        // Если прокси не настроен, используем относительный путь
+        return `/api/minio/${path}`;
+      }
     }
+  }
+  
+  // Если это относительный путь, преобразуем в полный URL через прокси
+  if (imageUrl.startsWith('/')) {
+    if (imgProxy && imgProxy !== '') {
+      return `${imgProxy}${imageUrl}`;
+    }
+    return imageUrl;
   }
   
   return imageUrl;
@@ -39,22 +61,23 @@ export const getGases = async (filters?: GasFilters): Promise<Gas[]> => {
     }
 
     const queryString = params.toString();
-    // В production на GitHub Pages используем относительный путь /api/gases
-    // который будет работать через прокси в dev, а в production вернет ошибку и переключится на mock
     const apiBase = getDestApi();
     const isProduction = import.meta.env.MODE === 'production';
-    const isLocalhost = apiBase.includes('localhost') || apiBase.includes('127.0.0.1');
     
-    // Если production и не localhost (GitHub Pages), используем относительный путь /api/gases
-    // который будет работать через прокси в dev, а в production вернет 404 и переключится на mock
+    // Формируем URL для запроса
     let url: string;
-    if (isProduction && !isLocalhost) {
-      // На GitHub Pages используем относительный путь
-      url = `/api/gases${queryString ? `?${queryString}` : ""}`;
-    } else {
-      // В development используем полный URL через прокси
+    
+    // Если указан явный API URL (через VITE_API_URL), используем его
+    if (apiBase && apiBase !== '') {
+      // Используем полный URL с IP адресом или доменом
       url = `${apiBase}/api/gases${queryString ? `?${queryString}` : ""}`;
+    } else {
+      // Если API URL не указан, используем относительный путь (для GitHub Pages без бэкенда)
+      // Это приведет к ошибке и переключению на mock данные
+      url = `/api/gases${queryString ? `?${queryString}` : ""}`;
     }
+    
+    console.log(`🔵 Fetching gases from: ${url}`);
 
     const response = await fetch(url);
     
@@ -114,20 +137,21 @@ export const getGases = async (filters?: GasFilters): Promise<Gas[]> => {
 
 export const getGasById = async (id: number): Promise<Gas | null> => {
   try {
-    // В production на GitHub Pages используем относительный путь /api/gases
     const apiBase = getDestApi();
-    const isProduction = import.meta.env.MODE === 'production';
-    const isLocalhost = apiBase.includes('localhost') || apiBase.includes('127.0.0.1');
     
-    // Если production и не localhost (GitHub Pages), используем относительный путь
+    // Формируем URL для запроса
     let url: string;
-    if (isProduction && !isLocalhost) {
-      // На GitHub Pages используем относительный путь
-      url = `/api/gases/${id}`;
-    } else {
-      // В development используем полный URL через прокси
+    
+    // Если указан явный API URL (через VITE_API_URL), используем его
+    if (apiBase && apiBase !== '') {
+      // Используем полный URL с IP адресом или доменом
       url = `${apiBase}/api/gases/${id}`;
+    } else {
+      // Если API URL не указан, используем относительный путь (для GitHub Pages без бэкенда)
+      url = `/api/gases/${id}`;
     }
+    
+    console.log(`🔵 Fetching gas ${id} from: ${url}`);
     
     const response = await fetch(url);
     

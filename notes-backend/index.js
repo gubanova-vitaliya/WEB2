@@ -1,23 +1,24 @@
 // index.js
 const express = require('express');
-const cors = require('cors');
 const app = express();
 const port = 3000; // Вы можете использовать любой другой порт
-// Импортируем библиотеку morgan для логирования
-const morgan = require('morgan');
-// Импортируем валидацию
-const { validateTodo } = require('./middleware/validation');
 
-// Настройка CORS для работы с Tauri по IP
-app.use(cors({
-  origin: true, // Разрешаем все источники для разработки
-  credentials: true
-}));
+// CORS middleware для разрешения запросов с разных источников
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  
+  // Обработка preflight запросов
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200);
+  }
+  
+  next();
+});
 
 // Добавьте промежуточное ПО (middleware) для обработки JSON
 app.use(express.json());
-// Устанавливаем morgan в режим 'combined'
-app.use(morgan('combined'));
 
 // Простой массив для хранения заметок
 let todos = [];
@@ -28,9 +29,10 @@ app.get('/todos', (req, res) => {
   console.log(todos);
 });
 
-// Роут для создания новой заметки с валидацией
-app.post('/todos', validateTodo, (req, res) => {
-  const newTodo = req.validatedTodo;
+// Роут для создания новой заметки
+app.post('/todos', (req, res) => {
+  const { id, title, content } = req.body;
+  const newTodo = { id, title, content };
   todos.push(newTodo);
   res.status(201).json(newTodo);
   console.log(todos);

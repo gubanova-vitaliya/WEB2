@@ -5,10 +5,6 @@ import mkcert from 'vite-plugin-mkcert'
 import fs from 'fs'
 import path from 'path'
 
-<<<<<<< HEAD
-// https://vitejs.dev/config/
-export default defineConfig({
-=======
 // Конфигурация для GitHub Pages
 // При сборке для production всегда используем путь репозитория для GitHub Pages
 // Проверяем через mode или command, так как NODE_ENV может быть не установлен на этапе загрузки конфига
@@ -30,7 +26,6 @@ export default defineConfig(({ command, mode }) => {
   const finalDestRoot = shouldUseGitHubPages ? GITHUB_PAGES_BASE : '/';
   
   return {
->>>>>>> adaptive-deployment
   plugins: [
     react(),
     mkcert(),
@@ -40,37 +35,6 @@ export default defineConfig(({ command, mode }) => {
         enabled: true,
       },
       manifest: {
-<<<<<<< HEAD
-        name: "Gase Frontend - Gas Calculator",
-        short_name: "Gase App",
-        start_url: "/WEB2/",
-        display: "standalone",
-        background_color: "#fdfdfd",
-        theme_color: "#007bff",
-        orientation: "portrait-primary",
-        icons: [
-          {
-            src: "/logo192.png",
-            type: "image/png",
-            sizes: "192x192"
-          },
-          {
-            src: "/logo512.png", 
-            type: "image/png",
-            sizes: "512x512"
-          }
-        ],
-      }
-    })
-  ],
-  base: "/WEB2", // Название репозитория
-  server: {
-    port: 5173,
-    https: fs.existsSync(path.resolve(__dirname, 'cert.key')) ? {
-      key: fs.readFileSync(path.resolve(__dirname, 'cert.key')),
-      cert: fs.readFileSync(path.resolve(__dirname, 'cert.crt')),
-    } : undefined,
-=======
         name: "Gase Application",
         short_name: "Gase App",
         description: "Приложение для работы с газами и расчетами",
@@ -143,7 +107,6 @@ export default defineConfig(({ command, mode }) => {
         return undefined;
       }
     })(),
->>>>>>> adaptive-deployment
     proxy: {
       "/api": {
         target: api_proxy_addr,
