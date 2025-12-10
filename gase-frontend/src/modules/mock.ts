@@ -6,7 +6,7 @@ export const GASES_MOCK: Gas[] = [
     title: "Водород",
     formula: "H₂",
     molar_mass: 2.016,
-    image_url: "/gas-images/hydrogen.svg",
+    image_url: "/gas-images/i.webp",
     description: "Самый легкий химический элемент, бесцветный газ без запаха и вкуса.",
   },
   {
@@ -14,7 +14,7 @@ export const GASES_MOCK: Gas[] = [
     title: "Кислород",
     formula: "O₂",
     molar_mass: 32.0,
-    image_url: "/gas-images/oxygen.svg",
+    image_url: "/gas-images/i.webp",
     description: "Жизненно важный газ, необходимый для дыхания большинства живых организмов.",
   },
   {
@@ -22,7 +22,7 @@ export const GASES_MOCK: Gas[] = [
     title: "Азот",
     formula: "N₂",
     molar_mass: 28.014,
-    image_url: "/gas-images/nitrogen.svg",
+    image_url: "/gas-images/i.webp",
     description: "Инертный газ, составляющий основную часть атмосферы Земли.",
   },
   {
@@ -30,7 +30,7 @@ export const GASES_MOCK: Gas[] = [
     title: "Углекислый газ",
     formula: "CO₂",
     molar_mass: 44.01,
-    image_url: "/gas-images/carbon-dioxide.svg",
+    image_url: "/gas-images/i.webp",
     description: "Газ, образующийся при дыхании и сжигании органических веществ.",
   },
   {
@@ -38,7 +38,7 @@ export const GASES_MOCK: Gas[] = [
     title: "Метан",
     formula: "CH₄",
     molar_mass: 16.043,
-    image_url: "/gas-images/methane.svg",
+    image_url: "/gas-images/i.webp",
     description: "Основной компонент природного газа, простейший углеводород.",
   },
   {
@@ -46,7 +46,7 @@ export const GASES_MOCK: Gas[] = [
     title: "Гелий",
     formula: "He",
     molar_mass: 4.003,
-    image_url: "/gas-images/helium.svg",
+    image_url: "/gas-images/i.webp",
     description: "Инертный газ, второй по легкости элемент, используется в воздушных шарах.",
   },
 ];
