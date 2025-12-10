@@ -1,4 +1,4 @@
-# GaseProject Frontend
+# Gas Project Frontend
 
 React приложение для работы с каталогом газов.
 
