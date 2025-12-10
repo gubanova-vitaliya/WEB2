@@ -113,14 +113,19 @@
 }
 
 .grid {
-  display: flex;
-  justify-content: space-between;
-  align-items: stretch;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 20px;
   padding: 20px;
   max-width: 1200px;
   margin: 0 auto;
+  align-items: stretch;
+}
+
+/* При фильтрации показываем карточки более компактно */
+.grid.filtered {
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 15px;
 }
 
 .card {
@@ -252,6 +257,25 @@
 
 .no-results h3 {
   margin-bottom: 10px;
+}
+
+.filter-results-info {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 15px 20px;
+  background-color: #e7f3ff;
+  border-left: 4px solid #4680C2;
+  border-radius: 4px;
+}
+
+.results-count {
+  font-size: 14px;
+  color: #333;
+}
+
+.results-count strong {
+  color: #4680C2;
+  font-weight: 600;
 }
 
 /* Адаптивность для планшетов */

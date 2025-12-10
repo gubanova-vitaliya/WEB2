@@ -7,20 +7,28 @@ import {
   useFilteredGases,
   useGasLoading,
   useGasError,
+  useAllGases,
+  useGasFilters,
 } from "../slices/gasSlice";
 import { GasFilters } from "../components/GasFilters";
 import { useCartTotalItems } from "../slices/cartSlice";
 import { CartModal } from "../components/CartModal";
 import { GasCardItem } from "../components/GasCardItem";
+import { Gas } from "../components/GasCard";
 
 export const GasesPage: FC = () => {
   const [showCartModal, setShowCartModal] = useState(false);
 
   // Redux селекторы
   const gases = useFilteredGases(); // Используем отфильтрованные газы
+  const allGases = useAllGases(); // Все газы для подсчета
+  const filters = useGasFilters(); // Текущие фильтры
   const loading = useGasLoading();
   const error = useGasError();
   const cartCount = useCartTotalItems();
+  
+  // Проверяем, активны ли фильтры
+  const hasActiveFilters = filters.minMolarMass !== undefined || filters.maxMolarMass !== undefined;
 
   // Загрузка данных через хук
   useGasData();
@@ -41,6 +49,15 @@ export const GasesPage: FC = () => {
       </div>
 
       <GasFilters />
+
+      {/* Информация о результатах фильтрации */}
+      {!loading && !error && hasActiveFilters && (
+        <div className="filter-results-info">
+          <span className="results-count">
+            Найдено: <strong>{gases.length}</strong> из <strong>{allGases.length}</strong> газов
+          </span>
+        </div>
+      )}
 
       {loading && (
         <div className="loading-bg">
@@ -63,8 +80,8 @@ export const GasesPage: FC = () => {
       )}
 
       {!loading && !error && gases.length > 0 && (
-        <div className="grid">
-          {gases.map((gas) => (
+        <div className={`grid ${hasActiveFilters ? 'filtered' : ''}`}>
+          {gases.map((gas: Gas) => (
             <GasCardItem key={gas.id} gas={gas} />
           ))}
         </div>

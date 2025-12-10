@@ -6,10 +6,13 @@ import fs from 'fs'
 import path from 'path'
 
 // Конфигурация для GitHub Pages
+// При сборке для production всегда используем путь репозитория для GitHub Pages
+// Проверяем через mode или command, так как NODE_ENV может быть не установлен на этапе загрузки конфига
 const isGitHubPages = process.env.VITE_GITHUB_PAGES === 'true';
 const REPO_NAME = process.env.VITE_REPO_NAME || 'gas-project-frontend';
 const GITHUB_PAGES_BASE = REPO_NAME ? `/${REPO_NAME}/` : '/';
 // Для GitHub Pages используем путь репозитория, иначе корневой путь
+// По умолчанию для production используем путь репозитория
 const dest_root = isGitHubPages ? GITHUB_PAGES_BASE : '/';
 
 // API адреса (используем process.env в конфигурации Vite)
@@ -17,7 +20,12 @@ const api_proxy_addr = process.env.VITE_API_URL || 'http://localhost:8080';
 const notes_api_addr = process.env.VITE_NOTES_API_URL || 'http://localhost:8081';
 const img_proxy_addr = process.env.VITE_IMG_PROXY_URL || 'http://localhost:8080';
 
-export default defineConfig({
+export default defineConfig(({ command, mode }) => {
+  // При сборке (build) всегда используем путь репозитория для GitHub Pages
+  const shouldUseGitHubPages = isGitHubPages || (command === 'build' && mode === 'production');
+  const finalDestRoot = shouldUseGitHubPages ? GITHUB_PAGES_BASE : '/';
+  
+  return {
   plugins: [
     react(),
     mkcert(),
@@ -30,20 +38,20 @@ export default defineConfig({
         name: "Gase Application",
         short_name: "Gase App",
         description: "Приложение для работы с газами и расчетами",
-        start_url: dest_root,
+        start_url: finalDestRoot,
         display: "standalone",
         background_color: "#fdfdfd",
         theme_color: "#db4938",
         orientation: "portrait-primary",
         icons: [
           {
-            src: `${dest_root}slide1.svg`,
+            src: `${finalDestRoot}slide1.svg`,
             type: "image/svg+xml",
             sizes: "192x192",
             purpose: "any maskable"
           },
           {
-            src: `${dest_root}slide1.svg`,
+            src: `${finalDestRoot}slide1.svg`,
             type: "image/svg+xml",
             sizes: "512x512",
             purpose: "any maskable"
@@ -79,9 +87,10 @@ export default defineConfig({
       }
     })
   ],
-  base: dest_root,
+  base: finalDestRoot,
   server: {
     port: 3000,
+    strictPort: false, // Позволяет использовать другой порт, если 3000 занят
     https: (() => {
       const certKeyPath = path.resolve(__dirname, 'cert.key');
       const certCrtPath = path.resolve(__dirname, 'cert.crt');
@@ -134,6 +143,7 @@ export default defineConfig({
       usePolling: true,
     },
     host: true,
-    strictPort: true,
+    strictPort: false, // Позволяет использовать другой порт, если 3000 занят
   },
-})
+  };
+});

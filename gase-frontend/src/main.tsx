@@ -29,10 +29,12 @@ if ("serviceWorker" in navigator) {
       // Приложение готово к работе оффлайн
       console.log("App ready to work offline");
     },
-    onRegistered(registration) {
-      console.log("Service Worker registered:", registration);
+    onRegistered(registration: ServiceWorkerRegistration | undefined) {
+      if (registration) {
+        console.log("Service Worker registered:", registration);
+      }
     },
-    onRegisterError(error) {
+    onRegisterError(error: Error) {
       console.error("Service Worker registration error:", error);
     }
   })

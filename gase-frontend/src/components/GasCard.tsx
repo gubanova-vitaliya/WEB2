@@ -1,9 +1,17 @@
 import { FC } from "react";
 import { Card, Button } from "react-bootstrap";
 import "./GasCard.css";
+import { getDestRoot } from "../../target_config";
 
-// Используем одно из существующих изображений как fallback
-const defaultImage = "/slide1.svg";
+// Получаем базовый путь для правильного формирования путей
+const getDefaultImage = () => {
+  const destRoot = getDestRoot();
+  if (destRoot === '') {
+    return '/slide1.svg';
+  }
+  const base = destRoot.endsWith('/') ? destRoot : destRoot + '/';
+  return base + 'slide1.svg';
+};
 
 export interface Gas {
   id: number;
@@ -24,22 +32,23 @@ export const GasCard: FC<GasCardProps> = ({ gas, onCardClick }) => {
     const target = e.target as HTMLImageElement;
     // Логируем ошибку для отладки
     console.warn(`Failed to load image: ${target.src}, falling back to default image`);
-    if (target.src !== defaultImage && !target.src.includes('slide1.svg')) {
-      target.src = defaultImage;
+    const defaultImagePath = getDefaultImage();
+    if (target.src !== defaultImagePath && !target.src.includes('slide1.svg')) {
+      target.src = defaultImagePath;
     }
   };
 
   return (
     <Card className="gas-card">
-      <Card.Img
-        className="card-image"
-        variant="top"
-        src={gas.image_url || defaultImage}
-        alt={gas.title}
-        onClick={() => onCardClick(gas.id)}
-        onError={handleImageError}
-        style={{ cursor: "pointer" }}
-      />
+            <Card.Img
+              className="card-image"
+              variant="top"
+              src={gas.image_url || getDefaultImage()}
+              alt={gas.title}
+              onClick={() => onCardClick(gas.id)}
+              onError={handleImageError}
+              style={{ cursor: "pointer" }}
+            />
       <Card.Body>
         <div className="text-style">
           <Card.Title>{gas.title}</Card.Title>

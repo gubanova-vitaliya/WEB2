@@ -15,7 +15,8 @@ const rootReducer = combineReducers({
 // Создание и настройка хранилища
 const store = configureStore({
   reducer: rootReducer,
-  // Можно добавить middleware, devTools и другие опции
+  // Включаем Redux DevTools для отладки
+  devTools: process.env.NODE_ENV !== 'production',
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       serializableCheck: {

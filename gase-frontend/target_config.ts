@@ -1,7 +1,6 @@
 // Конфигурация для разных окружений (development, production, GitHub Pages)
 
 // Определяем окружение
-const isGitHubPages = import.meta.env.MODE === 'production' && import.meta.env.VITE_GITHUB_PAGES === 'true';
 const isDevelopment = import.meta.env.DEV;
 
 // Имя репозитория для GitHub Pages (можно переопределить через переменную окружения)
@@ -12,8 +11,11 @@ const REPO_NAME = import.meta.env.VITE_REPO_NAME || 'gas-project-frontend';
 const GITHUB_PAGES_BASE = REPO_NAME ? `/${REPO_NAME}/` : '/';
 
 // Base path для разных окружений
-// В development используем пустую строку, в production для GitHub Pages - путь репозитория
-export const dest_root = isGitHubPages ? GITHUB_PAGES_BASE : (isDevelopment ? '' : '/');
+// В development используем пустую строку
+// В production всегда используем путь репозитория (для GitHub Pages)
+// Можно переопределить через VITE_GITHUB_PAGES=false для локального production
+const forceLocalProduction = import.meta.env.VITE_GITHUB_PAGES === 'false';
+export const dest_root = isDevelopment ? '' : (forceLocalProduction ? '/' : GITHUB_PAGES_BASE);
 
 // API адреса
 export const api_proxy_addr = import.meta.env.VITE_API_URL || 'http://localhost:8080';

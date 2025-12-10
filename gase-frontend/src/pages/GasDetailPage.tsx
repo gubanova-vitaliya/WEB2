@@ -4,9 +4,17 @@ import { useParams } from "react-router-dom";
 import { Gas } from "../components/GasCard";
 import { getGasById } from "../modules/gasApi";
 import { Spinner } from "react-bootstrap";
+import { getDestRoot } from "../../target_config";
 
-// Используем одно из существующих изображений как fallback
-const defaultImage = "/slide1.svg";
+// Получаем базовый путь для правильного формирования путей
+const getDefaultImage = () => {
+  const destRoot = getDestRoot();
+  if (destRoot === '') {
+    return '/slide1.svg';
+  }
+  const base = destRoot.endsWith('/') ? destRoot : destRoot + '/';
+  return base + 'slide1.svg';
+};
 
 export const GasDetailPage: FC = () => {
   const [pageData, setPageData] = useState<Gas | null>(null);
@@ -33,8 +41,9 @@ export const GasDetailPage: FC = () => {
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
     // Если изображение не загрузилось (из MinIO или другого источника), используем дефолтное
     const target = e.target as HTMLImageElement;
-    if (target.src !== defaultImage) {
-      target.src = defaultImage;
+    const defaultImagePath = getDefaultImage();
+    if (target.src !== defaultImagePath) {
+      target.src = defaultImagePath;
     }
   };
 
@@ -76,12 +85,12 @@ export const GasDetailPage: FC = () => {
           </div>
 
           <div className="gas-image">
-            <img
-              src={pageData.image_url || defaultImage}
-              alt={pageData.title}
-              onError={handleImageError}
-              loading="lazy"
-            />
+                <img
+                  src={pageData.image_url || getDefaultImage()}
+                  alt={pageData.title}
+                  onError={handleImageError}
+                  loading="lazy"
+                />
           </div>
 
           <div className="gas-properties">

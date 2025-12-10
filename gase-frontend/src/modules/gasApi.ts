@@ -39,7 +39,22 @@ export const getGases = async (filters?: GasFilters): Promise<Gas[]> => {
     }
 
     const queryString = params.toString();
-    const url = `${getDestApi()}/gases${queryString ? `?${queryString}` : ""}`;
+    // В production на GitHub Pages используем относительный путь /api/gases
+    // который будет работать через прокси в dev, а в production вернет ошибку и переключится на mock
+    const apiBase = getDestApi();
+    const isProduction = import.meta.env.MODE === 'production';
+    const isLocalhost = apiBase.includes('localhost') || apiBase.includes('127.0.0.1');
+    
+    // Если production и не localhost (GitHub Pages), используем относительный путь /api/gases
+    // который будет работать через прокси в dev, а в production вернет 404 и переключится на mock
+    let url: string;
+    if (isProduction && !isLocalhost) {
+      // На GitHub Pages используем относительный путь
+      url = `/api/gases${queryString ? `?${queryString}` : ""}`;
+    } else {
+      // В development используем полный URL через прокси
+      url = `${apiBase}/api/gases${queryString ? `?${queryString}` : ""}`;
+    }
 
     const response = await fetch(url);
     
@@ -65,15 +80,17 @@ export const getGases = async (filters?: GasFilters): Promise<Gas[]> => {
       description: gas.Description || gas.description,
     }));
   } catch (error: any) {
-    // Перехватываем все ошибки: сетевые (ERR_CONNECTION_REFUSED), таймауты, 500 и т.д.
-    // Ошибка ERR_CONNECTION_REFUSED - это нормально, когда бэкенд не запущен
+    // Перехватываем все ошибки: сетевые (ERR_CONNECTION_REFUSED), таймауты, 500, 404 и т.д.
+    // Ошибка ERR_CONNECTION_REFUSED или 404 - это нормально, когда бэкенд не запущен или недоступен
     // В этом случае просто используем mock данные без лишних сообщений
     const isConnectionError = 
       error.message?.includes('ERR_CONNECTION_REFUSED') ||
       error.message?.includes('Failed to fetch') ||
       error.message?.includes('NetworkError') ||
+      error.message?.includes('404') ||
       error.name === 'TypeError';
     
+    // Не логируем ошибки подключения или 404, так как это ожидаемо на GitHub Pages
     if (!isConnectionError) {
       console.warn("Error fetching gases, using mock data:", error.message || error);
     }
@@ -97,7 +114,22 @@ export const getGases = async (filters?: GasFilters): Promise<Gas[]> => {
 
 export const getGasById = async (id: number): Promise<Gas | null> => {
   try {
-    const response = await fetch(`${getDestApi()}/gases/${id}`);
+    // В production на GitHub Pages используем относительный путь /api/gases
+    const apiBase = getDestApi();
+    const isProduction = import.meta.env.MODE === 'production';
+    const isLocalhost = apiBase.includes('localhost') || apiBase.includes('127.0.0.1');
+    
+    // Если production и не localhost (GitHub Pages), используем относительный путь
+    let url: string;
+    if (isProduction && !isLocalhost) {
+      // На GitHub Pages используем относительный путь
+      url = `/api/gases/${id}`;
+    } else {
+      // В development используем полный URL через прокси
+      url = `${apiBase}/api/gases/${id}`;
+    }
+    
+    const response = await fetch(url);
     
     // Если ошибка сервера, используем mock данные
     if (!response.ok) {
@@ -115,13 +147,15 @@ export const getGasById = async (id: number): Promise<Gas | null> => {
       description: data.Description || data.description,
     };
   } catch (error: any) {
-    // Ошибка подключения - это нормально, когда бэкенд не запущен
+    // Ошибка подключения или 404 - это нормально, когда бэкенд не запущен или недоступен
     const isConnectionError = 
       error.message?.includes('ERR_CONNECTION_REFUSED') ||
       error.message?.includes('Failed to fetch') ||
       error.message?.includes('NetworkError') ||
+      error.message?.includes('404') ||
       error.name === 'TypeError';
     
+    // Не логируем ошибки подключения или 404, так как это ожидаемо на GitHub Pages
     if (!isConnectionError) {
       console.warn("Error fetching gas, using mock data:", error.message || error);
     }
