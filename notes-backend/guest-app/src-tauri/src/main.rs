@@ -2,7 +2,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 fn main() {
-    guest_app_lib::run()
+    gas_app_lib::run()
 }
 
 

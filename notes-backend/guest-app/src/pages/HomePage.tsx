@@ -7,12 +7,12 @@ export const HomePage: FC = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
 
   // Вспомогательная функция для правильного формирования путей
+  // В Vite статические файлы из public доступны через корневой путь
   const getImagePath = (imageName: string) => {
-    if (destRoot === '') {
-      return '/' + imageName;
-    }
-    const base = destRoot.endsWith('/') ? destRoot : destRoot + '/';
-    return base + imageName;
+    // Vite автоматически обслуживает файлы из public через корневой путь
+    // В dev режиме: http://localhost:3002/slide1.svg
+    // В production: /slide1.svg (файлы копируются в dist)
+    return '/' + imageName;
   };
 
   // Версия для обхода кеша (измените при обновлении изображений)
@@ -39,9 +39,19 @@ export const HomePage: FC = () => {
     }
   ];
 
-  // Отладочная информация (можно удалить после исправления)
+  // Отладочная информация
   useEffect(() => {
     console.log('Carousel items paths:', carouselItems.map(item => item.src));
+    console.log('destRoot:', destRoot);
+    console.log('Window location:', window.location.href);
+    
+    // Проверка доступности изображений
+    carouselItems.forEach((item, index) => {
+      const img = new Image();
+      img.onload = () => console.log(`✅ Image ${index + 1} loaded: ${item.src}`);
+      img.onerror = () => console.error(`❌ Image ${index + 1} failed to load: ${item.src}`);
+      img.src = item.src;
+    });
   }, []);
 
   // Автоматическая смена слайдов

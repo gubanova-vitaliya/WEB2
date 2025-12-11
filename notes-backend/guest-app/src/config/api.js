@@ -49,6 +49,12 @@ export const transformImageUrl = (imageUrl) => {
   return imageUrl;
 };
 
-console.log(`🌐 API Base URL: ${API_BASE_URL}`);
-console.log(`🖼️ MinIO Base URL: ${MINIO_BASE_URL}`);
+// Детальное логирование конфигурации для отладки
+console.log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
+console.log(`🔧 Конфигурация подключения к бэкенду:`);
+console.log(`   IP адрес: ${LOCAL_NETWORK_IP}`);
+console.log(`   API порт: ${API_PORT}`);
+console.log(`   🌐 API Base URL: ${API_BASE_URL}`);
+console.log(`   🖼️ MinIO Base URL: ${MINIO_BASE_URL}`);
+console.log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
 
