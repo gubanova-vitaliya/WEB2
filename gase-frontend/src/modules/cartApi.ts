@@ -1,6 +1,23 @@
+import { getDestApi } from "../../target_config";
+
 export const getCartCount = async (): Promise<number> => {
   try {
-    const response = await fetch("/api/cart");
+    const apiBase = getDestApi();
+    
+    // Если API URL не установлен, возвращаем 0
+    if (!apiBase || apiBase === '') {
+      console.debug('API URL not configured, cart count will be 0');
+      return 0;
+    }
+    
+    // Используем полный URL к API
+    const url = `${apiBase}/api/cart`;
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
     
     // Если ошибка сервера, возвращаем 0
     if (!response.ok) {
@@ -18,16 +35,7 @@ export const getCartCount = async (): Promise<number> => {
 };
 
 export const addGasToCart = async (gasId: number): Promise<void> => {
-  try {
-    const response = await fetch(`/api/gases/${gasId}/add-to-draft`, {
-      method: "POST",
-    });
-    
-    if (!response.ok) {
-      throw new Error(`Failed to add gas to cart: ${response.status}`);
-    }
-  } catch (error) {
-    console.error("Error adding gas to cart:", error);
-    throw error;
-  }
+  // Метод существует, но реализация добавления в журнал будет добавлена позже
+  console.log(`Метод addGasToCart вызван для газа с ID: ${gasId}`);
+  // TODO: Реализовать добавление газа в журнал расчетов
 };

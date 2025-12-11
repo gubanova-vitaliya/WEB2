@@ -1,5 +1,5 @@
 import "./GasesPage.css";
-import { FC, useState } from "react";
+import { FC } from "react";
 import { Spinner } from "react-bootstrap";
 import { ROUTE_LABELS } from "../Routes";
 import { useGasData } from "../hooks/useGasData";
@@ -12,13 +12,11 @@ import {
 } from "../slices/gasSlice";
 import { GasFilters } from "../components/GasFilters";
 import { useCartTotalItems } from "../slices/cartSlice";
-import { CartModal } from "../components/CartModal";
 import { GasCardItem } from "../components/GasCardItem";
 import { Gas } from "../components/GasCard";
+import { useCartData } from "../hooks/useCartData";
 
 export const GasesPage: FC = () => {
-  const [showCartModal, setShowCartModal] = useState(false);
-
   // Redux селекторы
   const gases = useFilteredGases(); // Используем отфильтрованные газы
   const allGases = useAllGases(); // Все газы для подсчета
@@ -30,22 +28,21 @@ export const GasesPage: FC = () => {
   // Проверяем, активны ли фильтры
   const hasActiveFilters = filters.minMolarMass !== undefined || filters.maxMolarMass !== undefined;
 
-  // Загрузка данных через хук
+  // Загрузка данных через хуки
   useGasData();
+  useCartData(); // Загружаем количество элементов в журнале расчетов
 
   return (
     <div className="gases-page">
       <div className="page-header">
           <h1>{ROUTE_LABELS.GASES}</h1>
-        <button
-          type="button"
+        <div
           className={`cart-link ${cartCount > 0 ? "active" : "inactive"}`}
-          onClick={() => setShowCartModal(true)}
         >
           <span className="cart-icon">📋</span>
           Журнал расчетов
           <span className="cart-count">{cartCount}</span>
-        </button>
+        </div>
       </div>
 
       <GasFilters />
@@ -86,11 +83,6 @@ export const GasesPage: FC = () => {
           ))}
         </div>
       )}
-
-      <CartModal 
-        show={showCartModal} 
-        onHide={() => setShowCartModal(false)} 
-      />
     </div>
   );
 };

@@ -6,10 +6,13 @@ import (
 	"WEB/internal/app/handler"
 	"WEB/internal/app/repository"
 	"WEB/internal/app/role"
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
+	"net"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strconv"
 	"time"
 
@@ -66,11 +69,113 @@ func (a *Application) RunApp() {
 	}
 
 	serverAddress := fmt.Sprintf("%s:%d", host, port)
-	logrus.Infof("Starting server on %s", serverAddress)
-	if err := a.Router.Run(serverAddress); err != nil {
-		logrus.Fatal(err)
+
+	// Пытаемся загрузить HTTPS сертификаты (созданные через mkcert)
+	certPath := getEnvOrDefault("HTTPS_CERT_PATH", "cert.crt")
+	keyPath := getEnvOrDefault("HTTPS_KEY_PATH", "cert.key")
+
+	// Проверяем наличие сертификатов в разных местах
+	certPaths := []string{
+		certPath,
+		filepath.Join(".", certPath),
+		filepath.Join("..", certPath),
+		filepath.Join("cmd", "GaseProject", certPath),
 	}
+
+	keyPaths := []string{
+		keyPath,
+		filepath.Join(".", keyPath),
+		filepath.Join("..", keyPath),
+		filepath.Join("cmd", "GaseProject", keyPath),
+	}
+
+	var certFile, keyFile string
+	for _, cp := range certPaths {
+		if _, err := os.Stat(cp); err == nil {
+			certFile = cp
+			break
+		}
+	}
+	for _, kp := range keyPaths {
+		if _, err := os.Stat(kp); err == nil {
+			keyFile = kp
+			break
+		}
+	}
+
+	// Если найдены оба файла сертификата, запускаем HTTPS сервер
+	if certFile != "" && keyFile != "" {
+		logrus.Infof("HTTPS certificates found: cert=%s, key=%s", certFile, keyFile)
+
+		// Загружаем сертификат
+		cert, err := tls.LoadX509KeyPair(certFile, keyFile)
+		if err != nil {
+			logrus.Fatalf("Failed to load HTTPS certificates: %v", err)
+		}
+
+		// Настраиваем TLS конфигурацию
+		tlsConfig := &tls.Config{
+			Certificates: []tls.Certificate{cert},
+			MinVersion:   tls.VersionTLS12,
+		}
+
+		// Создаем HTTP сервер с TLS
+		server := &http.Server{
+			Addr:      serverAddress,
+			Handler:   a.Router,
+			TLSConfig: tlsConfig,
+		}
+
+		logrus.Infof("🚀 Starting HTTPS server on https://%s", serverAddress)
+		logrus.Infof("📝 Server is running on HTTPS protocol")
+
+		// Определяем локальный IP адрес для удобства
+		if localIP := getLocalIP(); localIP != "" {
+			logrus.Infof("💡 Use this URL in frontend: https://%s:%d", localIP, port)
+			logrus.Infof("💡 Or use meta tag: <meta name=\"api-url\" content=\"https://%s:%d\" />", localIP, port)
+		}
+
+		// Запускаем HTTPS сервер
+		if err := server.ListenAndServeTLS("", ""); err != nil && err != http.ErrServerClosed {
+			logrus.Fatalf("Failed to start HTTPS server: %v", err)
+		}
+	} else {
+		// Если сертификаты не найдены, запускаем обычный HTTP сервер
+		logrus.Infof("HTTPS certificates not found, starting HTTP server")
+		logrus.Infof("💡 To enable HTTPS, create certificates using mkcert:")
+		logrus.Infof("   1. Install mkcert: npm install -g mkcert")
+		logrus.Infof("   2. Create CA: mkcert create-ca")
+		logrus.Infof("   3. Create cert: mkcert create-cert")
+		logrus.Infof("   4. Place cert.crt and cert.key in project root")
+		logrus.Infof("🚀 Starting HTTP server on http://%s", serverAddress)
+		logrus.Infof("📝 Server is running on HTTP protocol")
+
+		if err := a.Router.Run(serverAddress); err != nil {
+			logrus.Fatal(err)
+		}
+	}
+
 	logrus.Info("Server down")
+}
+
+// getEnvOrDefault возвращает значение переменной окружения или значение по умолчанию
+func getEnvOrDefault(key, defaultValue string) string {
+	if value := os.Getenv(key); value != "" {
+		return value
+	}
+	return defaultValue
+}
+
+// getLocalIP возвращает локальный IP адрес машины
+func getLocalIP() string {
+	conn, err := net.Dial("udp", "8.8.8.8:80")
+	if err != nil {
+		return ""
+	}
+	defer conn.Close()
+
+	localAddr := conn.LocalAddr().(*net.UDPAddr)
+	return localAddr.IP.String()
 }
 
 // loginReq represents login request parameters

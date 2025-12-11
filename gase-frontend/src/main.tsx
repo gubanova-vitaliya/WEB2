@@ -6,6 +6,7 @@ import { registerSW } from 'virtual:pwa-register'
 import App from './App.tsx'
 import store from './store'
 import { getDestRoot } from '../target_config'
+import { addGasToCart, getCartCount } from './modules/cartApi'
 import 'bootstrap/dist/css/bootstrap.min.css'
 import './index.css'
 
@@ -18,6 +19,16 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     </Provider>
   </React.StrictMode>,
 )
+
+// Делаем метод журнала расчетов доступным в браузере для просмотра
+if (typeof window !== 'undefined') {
+  (window as any).addGasToCart = addGasToCart;
+  (window as any).getCartCount = getCartCount;
+  console.log('📋 Метод журнала расчетов доступен в браузере:');
+  console.log('   - window.addGasToCart(gasId) - добавить газ в журнал');
+  console.log('   - window.getCartCount() - получить количество элементов');
+  console.log('   Пример: window.addGasToCart(1)');
+}
 
 if ("serviceWorker" in navigator) {
   registerSW({
