@@ -40,27 +40,44 @@ func main() {
 	router := gin.Default()
 
 	// Настраиваем CORS middleware
-	// Используем AllowOriginFunc для поддержки динамических IP адресов
+	// Используем AllowOriginFunc для поддержки динамических IP адресов и GitHub Pages
 	router.Use(cors.New(cors.Config{
 		AllowOriginFunc: func(origin string) bool {
 			// Разрешаем запросы без Origin (например, из Tauri или прямые запросы)
 			if origin == "" {
+				logrus.Debug("CORS: Allowing request without Origin header")
 				return true
 			}
 
-			// Разрешаем localhost и 127.0.0.1 на любых портах
+			logrus.Debugf("CORS: Checking origin: %s", origin)
+
+			// Разрешаем localhost и 127.0.0.1 на любых портах (HTTP и HTTPS)
 			if strings.HasPrefix(origin, "http://localhost:") ||
-				strings.HasPrefix(origin, "http://127.0.0.1:") {
+				strings.HasPrefix(origin, "https://localhost:") ||
+				strings.HasPrefix(origin, "http://127.0.0.1:") ||
+				strings.HasPrefix(origin, "https://127.0.0.1:") {
 				return true
 			}
 
-			// Разрешаем локальные IP адреса (192.168.x.x, 10.x.x.x, 172.16-18.x.x)
+			// Разрешаем локальные IP адреса (192.168.x.x, 10.x.x.x, 172.16-18.x.x) по HTTP
 			// Проверяем паттерны локальных сетей
 			if strings.HasPrefix(origin, "http://192.168.") ||
 				strings.HasPrefix(origin, "http://10.") ||
 				strings.HasPrefix(origin, "http://172.16.") ||
 				strings.HasPrefix(origin, "http://172.17.") ||
 				strings.HasPrefix(origin, "http://172.18.") {
+				return true
+			}
+
+			// Разрешаем GitHub Pages домены (https://*.github.io)
+			// Это позволяет запросам с GitHub Pages работать
+			if strings.Contains(origin, ".github.io") {
+				return true
+			}
+
+			// Разрешаем все HTTPS запросы (для безопасности можно ограничить конкретными доменами)
+			// В production лучше указать конкретные домены
+			if strings.HasPrefix(origin, "https://") {
 				return true
 			}
 

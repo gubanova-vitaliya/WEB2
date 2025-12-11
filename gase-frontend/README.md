@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-# Gase Frontend
-=======
 # Gas Project Frontend
->>>>>>> origin/react-frontend
 
 React приложение для работы с газами и расчетами.
 
@@ -41,31 +37,52 @@ npm install
    - `VITE_GITHUB_PAGES=true` - включает режим GitHub Pages
    - `VITE_REPO_NAME` - имя вашего репозитория (по умолчанию: `gas-project-frontend`)
      - Если репозиторий называется `username.github.io`, установите пустую строку: `VITE_REPO_NAME=""`
+   - **Подключение к бэкенду** (опционально, аналогично Tauri):
+     - `VITE_API_IP` - IP адрес бэкенда в локальной сети (например: `192.168.0.100`)
+     - `VITE_API_PORT` - порт API (по умолчанию: `8080`)
+     - `VITE_MINIO_PORT` - порт MinIO для изображений (по умолчанию: `9000`)
+     - Или используйте `VITE_API_URL` для полного URL (например: `http://192.168.0.100:8080`)
 
 ### Сборка и деплой
 
-#### Вариант 1: Использование скрипта deploy (рекомендуется)
+       #### Вариант 1: Использование скрипта deploy (рекомендуется)
 
-```bash
-# Windows (PowerShell)
-$env:VITE_GITHUB_PAGES="true"; $env:VITE_REPO_NAME="gas-project-frontend"; npm run deploy
+       ```bash
+       # Windows (PowerShell) - без бэкенда (использует mock данные)
+       $env:VITE_GITHUB_PAGES="true"; $env:VITE_REPO_NAME="gas-project-frontend"; npm run deploy
+
+       # Windows (PowerShell) - с подключением к бэкенду через туннель
+       # Сначала запустите туннель: npx localtunnel --port 8080
+       # Затем используйте полученный HTTPS URL:
+       $env:VITE_GITHUB_PAGES="true"; $env:VITE_REPO_NAME="gas-project-frontend"; $env:VITE_API_URL="https://xxx.loca.lt"; npm run deploy
 
 # Windows (CMD)
 set VITE_GITHUB_PAGES=true && set VITE_REPO_NAME=gas-project-frontend && npm run deploy
 
-# Linux/Mac
+# Linux/Mac - без бэкенда
 VITE_GITHUB_PAGES=true VITE_REPO_NAME=gas-project-frontend npm run deploy
+
+# Linux/Mac - с подключением к бэкенду
+VITE_GITHUB_PAGES=true VITE_REPO_NAME=gas-project-frontend VITE_API_IP=192.168.0.100 VITE_API_PORT=8080 npm run deploy
 ```
 
 #### Вариант 2: Ручная сборка и деплой
 
 ```bash
 # 1. Сборка с переменными окружения
-# Windows (PowerShell)
+# Windows (PowerShell) - без бэкенда
 $env:VITE_GITHUB_PAGES="true"; $env:VITE_REPO_NAME="gas-project-frontend"; npm run build:gh-pages
 
-# Linux/Mac
+       # Windows (PowerShell) - с подключением к бэкенду через туннель
+       # Сначала запустите туннель: npx localtunnel --port 8080
+       # Затем используйте полученный HTTPS URL:
+       $env:VITE_GITHUB_PAGES="true"; $env:VITE_REPO_NAME="gas-project-frontend"; $env:VITE_API_URL="https://xxx.loca.lt"; npm run build:gh-pages
+
+# Linux/Mac - без бэкенда
 VITE_GITHUB_PAGES=true VITE_REPO_NAME=gas-project-frontend npm run build:gh-pages
+
+# Linux/Mac - с подключением к бэкенду
+VITE_GITHUB_PAGES=true VITE_REPO_NAME=gas-project-frontend VITE_API_IP=192.168.0.100 VITE_API_PORT=8080 npm run build:gh-pages
 
 # 2. Деплой
 npm run deploy
@@ -85,9 +102,13 @@ npm run deploy
 
 - ⚠️ **Имя репозитория:** Убедитесь, что `VITE_REPO_NAME` совпадает с реальным именем репозитория на GitHub
 - ⚠️ **AJAX запросы:** При развертывании на GitHub Pages, AJAX запросы будут идти по http, в то время как приложение доступно по https. Работать это будет только при использовании адреса `localhost` в AJAX запросах или при настройке CORS на бекенде
-- ⚠️ **Бекенд API:** Бекенд API не будет работать на GitHub Pages (только статический фронтенд)
+- ⚠️ **Бекенд API:** 
+  - По умолчанию бекенд API не будет работать на GitHub Pages (только статический фронтенд)
+  - Для подключения к бэкенду укажите `VITE_API_IP` и `VITE_API_PORT` (аналогично Tauri) или `VITE_API_URL`
+  - Убедитесь, что бэкенд доступен из интернета или настраивает CORS для разрешения запросов с GitHub Pages
 - ✅ **Mock данные:** В режиме GitHub Pages приложение автоматически использует mock данные при недоступности API
 - ✅ **Роутинг:** Все ссылки используют `Link` компонент, который автоматически учитывает `basename`
+- ✅ **Подключение к бэкенду:** Используйте те же переменные окружения, что и для Tauri (`VITE_API_IP`, `VITE_API_PORT`)
 
 ## Progressive Web Application (PWA)
 

@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { Gas } from "../components/GasCard";
+import { Gas } from "../store/slices/gasSlice";
 
 // Тип для начального состояния
 interface GasCalculationState {
@@ -53,7 +53,7 @@ const gasCalculationSlice = createSlice({
       state.Gases.push(action.payload);
     },
     removeGas(state, action: PayloadAction<number>) {
-      state.Gases = state.Gases.filter(gas => gas.id !== action.payload);
+      state.Gases = state.Gases.filter((gas: Gas) => gas.id !== action.payload);
     },
     clearGases(state) {
       state.Gases = [];

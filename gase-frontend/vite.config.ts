@@ -143,7 +143,6 @@ export default defineConfig(({ command, mode }) => {
       usePolling: true,
     },
     host: true,
-    strictPort: false, // Позволяет использовать другой порт, если 3000 занят
   },
   };
 });

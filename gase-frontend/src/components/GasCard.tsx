@@ -1,7 +1,5 @@
 import { FC } from "react";
-import { Card, Button, Badge } from "react-bootstrap";
-import { useAppDispatch } from "../store/hooks";
-import { addToCart, useCartItemCount } from "../store/slices/cartSlice";
+import { Card, Button } from "react-bootstrap";
 import { Gas } from "../store/slices/gasSlice";
 import "./GasCard.css";
 import { getDestRoot } from "../../target_config";
@@ -16,27 +14,12 @@ const getDefaultImage = () => {
   return base + 'slide1.svg';
 };
 
-<<<<<<< HEAD
-=======
-export interface Gas {
-  id: number;
-  title: string;
-  formula: string;
-  molar_mass: number;
-  image_url?: string | null;
-  description?: string;
-}
-
->>>>>>> adaptive-deployment
 interface GasCardProps {
   gas: Gas;
   onCardClick: (id: number) => void;
 }
 
 export const GasCard: FC<GasCardProps> = ({ gas, onCardClick }) => {
-  const dispatch = useAppDispatch();
-  const cartCount = useCartItemCount(gas.id);
-
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
     const target = e.target as HTMLImageElement;
     // Логируем ошибку для отладки
@@ -45,11 +28,6 @@ export const GasCard: FC<GasCardProps> = ({ gas, onCardClick }) => {
     if (target.src !== defaultImagePath && !target.src.includes('slide1.svg')) {
       target.src = defaultImagePath;
     }
-  };
-
-  const handleAddToCart = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    dispatch(addToCart(gas));
   };
 
   return (
@@ -89,22 +67,6 @@ export const GasCard: FC<GasCardProps> = ({ gas, onCardClick }) => {
             onClick={() => onCardClick(gas.id)}
           >
             Подробнее
-          </Button>
-          <Button
-            variant="success"
-            onClick={handleAddToCart}
-            className="position-relative"
-          >
-            ➕ В расчет
-            {cartCount > 0 && (
-              <Badge 
-                bg="danger" 
-                pill 
-                className="position-absolute top-0 start-100 translate-middle"
-              >
-                {cartCount}
-              </Badge>
-            )}
           </Button>
         </div>
       </Card.Body>

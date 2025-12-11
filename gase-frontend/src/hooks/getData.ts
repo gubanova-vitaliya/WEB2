@@ -7,7 +7,7 @@ import { useEffect } from "react";
 import axios from "axios";
 import { setGasesAction } from "../slices/dataSlice";
 import { useAppDispatch } from "./useTypedRedux";
-import { Gas } from "../components/GasCard";
+import { Gas } from "../store/slices/gasSlice";
 
 export function GetGases() {
   const dispatch = useAppDispatch();

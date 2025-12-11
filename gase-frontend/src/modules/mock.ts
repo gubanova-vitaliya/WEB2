@@ -1,14 +1,10 @@
-<<<<<<< HEAD
 import { Gas } from "../store/slices/gasSlice";
-=======
-import { Gas } from "../components/GasCard";
 import { getDestRoot } from "../../target_config";
->>>>>>> adaptive-deployment
 
 const createGasesMock = (): Gas[] => {
   const destRoot = getDestRoot();
   
-  // Вспомогательная функция для правильного формирования путей
+  // Вспомогательная функция для правильного формирования путей к изображениям
   const getImagePath = (imageName: string) => {
     let path: string;
     if (destRoot === '') {
@@ -20,16 +16,14 @@ const createGasesMock = (): Gas[] => {
     return path;
   };
   
-  // Используем gas-images/i.webp (с 's'), так как файл находится в public/gas-images/
-  const defaultImagePath = getImagePath('gas-images/i.webp');
-  
+  // Используем соответствующие WebP изображения для каждого газа
   return [
     {
       id: 1,
       title: "Водород",
       formula: "H₂",
       molar_mass: 2.016,
-      image_url: defaultImagePath,
+      image_url: getImagePath('gas-images/vodorod.webp'),
       description: "Самый легкий химический элемент, бесцветный газ без запаха и вкуса.",
     },
     {
@@ -37,7 +31,7 @@ const createGasesMock = (): Gas[] => {
       title: "Кислород",
       formula: "O₂",
       molar_mass: 32.0,
-      image_url: defaultImagePath,
+      image_url: getImagePath('gas-images/kislorod.webp'),
       description: "Жизненно важный газ, необходимый для дыхания большинства живых организмов.",
     },
     {
@@ -45,7 +39,7 @@ const createGasesMock = (): Gas[] => {
       title: "Азот",
       formula: "N₂",
       molar_mass: 28.014,
-      image_url: defaultImagePath,
+      image_url: getImagePath('gas-images/azot.webp'),
       description: "Инертный газ, составляющий основную часть атмосферы Земли.",
     },
     {
@@ -53,23 +47,15 @@ const createGasesMock = (): Gas[] => {
       title: "Углекислый газ",
       formula: "CO₂",
       molar_mass: 44.01,
-      image_url: defaultImagePath,
+      image_url: getImagePath('gas-images/uglekisliy_gas.webp'),
       description: "Газ, образующийся при дыхании и сжигании органических веществ.",
-    },
-    {
-      id: 5,
-      title: "Метан",
-      formula: "CH₄",
-      molar_mass: 16.043,
-      image_url: defaultImagePath,
-      description: "Основной компонент природного газа, простейший углеводород.",
     },
     {
       id: 6,
       title: "Гелий",
       formula: "He",
       molar_mass: 4.003,
-      image_url: defaultImagePath,
+      image_url: getImagePath('gas-images/geliy.png'),
       description: "Инертный газ, второй по легкости элемент, используется в воздушных шарах.",
     },
   ];

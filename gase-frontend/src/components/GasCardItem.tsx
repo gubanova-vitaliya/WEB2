@@ -1,6 +1,7 @@
 import { FC } from "react";
 import { useNavigate } from "react-router-dom";
-import { GasCard, Gas } from "./GasCard";
+import { GasCard } from "./GasCard";
+import { Gas } from "../store/slices/gasSlice";
 
 interface GasCardItemProps {
   gas: Gas;

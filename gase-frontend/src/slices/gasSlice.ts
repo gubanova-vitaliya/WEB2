@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { useAppSelector } from "../hooks/useTypedRedux";
-import { Gas } from "../components/GasCard";
+import { Gas } from "../store/slices/gasSlice";
 
 // Интерфейс для фильтров
 export interface GasFilters {
