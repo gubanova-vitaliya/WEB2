@@ -13,7 +13,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt"
-	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 )
 
@@ -118,11 +117,28 @@ func (h *Handler) RegisterAPI(router *gin.Engine) {
 	// Публичные эндпоинты
 	api.GET("/gases", h.ApiGetGases)
 	api.GET("/gases/:id", h.ApiGetGas)
-	api.GET("/cart", h.ApiGetCart)
 	api.GET("/minio/*path", h.ProxyMinIOImage) // Проксирование изображений MinIO
-	api.POST("/gases/:id/add-to-draft", h.ApiAddGasToDraft)
 	api.POST("/auth/register", h.ApiRegister)
 	api.POST("/auth/login", h.ApiLogin)
+	
+	// Эндпоинты с опциональной аутентификацией (используют токен если есть)
+	optionalAuth := api.Group("")
+	optionalAuth.Use(h.AuthMiddleware()) // Пытается получить токен, но не требует его
+	{
+		optionalAuth.GET("/cart", h.ApiGetCart)
+		optionalAuth.POST("/gases/:id/add-to-draft", h.ApiAddGasToDraft)
+	}
+
+	// Админские эндпоинты для управления газами
+	adminGas := api.Group("")
+	adminGas.Use(h.AuthMiddleware())
+	adminGas.Use(h.RoleMiddleware(role.Admin))
+	{
+		adminGas.POST("/gases", h.ApiCreateGas)
+		adminGas.PUT("/gases/:id", h.ApiUpdateGas)
+		adminGas.DELETE("/gases/:id", h.ApiDeleteGas)
+		adminGas.POST("/gases/:id/image", h.ApiUploadGasImage)
+	}
 
 	// Защищенные эндпоинты (требуют авторизации)
 	protected := api.Group("")
@@ -135,10 +151,16 @@ func (h *Handler) RegisterAPI(router *gin.Engine) {
 		// Заявки пользователя
 		protected.GET("/my-calculations", h.ApiGetMyCalculations)
 		protected.GET("/my-draft", h.ApiGetMyDraft) // Получить черновик как заявку
+		protected.GET("/calculations/:id", h.ApiGetCalculation)
 		protected.POST("/calculations", h.ApiCreateCalculation)
 		protected.PUT("/calculations/:id", h.ApiUpdateCalculation)
+		protected.DELETE("/calculations/:id", h.ApiDeleteCalculation)
 		protected.POST("/calculations/:id/submit", h.ApiSubmitCalculation)
-		protected.PUT("/calculations/:id/complete", h.ApiCompleteCalculation) // <-- ПЕРЕМЕСТИЛИ СЮДА!
+		protected.PUT("/calculations/:id/complete", h.ApiCompleteCalculation)
+		
+		// Управление газами в расчетах (GasCalculation)
+		protected.DELETE("/mm/gas/:id", h.ApiMMDelete)
+		protected.PUT("/mm/gas/:id", h.ApiMMUpdate)
 	}
 
 	// Модераторские эндпоинты
@@ -203,13 +225,8 @@ func (h *Handler) AuthMiddleware() gin.HandlerFunc {
 			}
 		}
 
-		// Если нет валидного токена, устанавливаем заглушечные данные
-		if _, exists := ctx.Get("user_uuid"); !exists {
-			// Используем UUID созданного тестового пользователя
-			userUUID, _ := uuid.Parse("39294118-7335-435e-b808-d530b93c98a4")
-			ctx.Set("user_uuid", userUUID.String())
-			ctx.Set("user_role", role.Buyer)
-		}
+		// Если нет валидного токена, не устанавливаем заглушечные данные
+		// Это позволит защищенным эндпоинтам вернуть ошибку авторизации
 
 		ctx.Next()
 	}
@@ -220,7 +237,7 @@ func (h *Handler) AuthMiddleware() gin.HandlerFunc {
 type apiRegisterReq struct {
 	Login    string `json:"login" binding:"required"`
 	Password string `json:"password" binding:"required"`
-	Email    string `json:"email"`
+	Email    string `json:"email,omitempty"`
 	Name     string `json:"name" binding:"required"`
 }
 

@@ -37,7 +37,7 @@ func (r *Repository) CreateCalculation(calculation *ds.Calculation) error {
 	return r.db.Create(calculation).Error
 }
 
-// GetUserCalculations возвращает заявки пользователя по UUID
+// GetUserCalculations возвращает заявки пользователя по UUID (без черновиков)
 func (r *Repository) GetUserCalculations(userUUID string) ([]ds.Calculation, error) {
 	var user ds.User
 	if err := r.db.Where("uuid = ?", userUUID).First(&user).Error; err != nil {
@@ -46,8 +46,10 @@ func (r *Repository) GetUserCalculations(userUUID string) ([]ds.Calculation, err
 
 	var calculations []ds.Calculation
 	err := r.db.
+		Preload("Gases"). // Загружаем связанные газы
+		Preload("Gases.Gas"). // Загружаем данные самих газов
 		Where("creator_id = ?", user.ID).
-		Where("status <> ?", "deleted").
+		Where("status <> ?", "draft"). // Исключаем черновики из списка "Мои заявки" (но включаем "deleted" и "formed")
 		Order("date_create DESC").
 		Find(&calculations).Error
 
@@ -60,19 +62,7 @@ func (r *Repository) Register(user *ds.User) error {
 		user.UUID = uuid.New()
 	}
 
-	// Проверяем, не существует ли уже пользователь с таким логином
-	var existingUser ds.User
-	if err := r.db.Where("login = ?", user.Login).First(&existingUser).Error; err == nil {
-		return errors.New("user with this login already exists")
-	}
-
-	// Проверяем email, если он предоставлен
-	if user.Email != "" {
-		if err := r.db.Where("email = ?", user.Email).First(&existingUser).Error; err == nil {
-			return errors.New("user with this email already exists")
-		}
-	}
-
+	// Убраны проверки на уникальность логина и email - разрешена регистрация с любыми повторяющимися значениями
 	return r.db.Create(user).Error
 }
 

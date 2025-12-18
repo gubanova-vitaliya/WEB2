@@ -6,8 +6,8 @@ import "database/sql"
 type GasCalculation struct {
 	ID uint `gorm:"primaryKey"`
 
-	CalculationID uint `gorm:"not null;uniqueIndex:idx_calculation_gas"`
-	GasID         uint `gorm:"not null;uniqueIndex:idx_calculation_gas"`
+	CalculationID uint `gorm:"not null"`
+	GasID         uint `gorm:"not null"`
 
 	Sound    bool `gorm:"default:true"`
 	Quantity int  `gorm:"default:1"`

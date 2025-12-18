@@ -24,11 +24,12 @@ type CreateCalculationRequest struct {
 // CalculationResponse represents calculation response for API
 // @Description Calculation response object
 type CalculationResponse struct {
-	ID         uint      `json:"id" example:"1"`
-	Status     string    `json:"status" example:"draft"`
-	Text       string    `json:"text" example:"Calculation description"`
-	DateCreate time.Time `json:"date_create"`
-	CreatorID  uint      `json:"creator_id" example:"1"`
+	ID         uint                `json:"id" example:"1"`
+	Status     string              `json:"status" example:"draft"`
+	Text       string              `json:"text" example:"Calculation description"`
+	DateCreate time.Time           `json:"date_create"`
+	CreatorID  uint                `json:"creator_id" example:"1"`
+	Gases      []GasCalculationDTO `json:"gases,omitempty"`
 }
 
 // GasCalculationDTO represents gas calculation for API without sql.Null types
@@ -95,8 +96,12 @@ func (h *Handler) AddGasToCalculation(ctx *gin.Context) {
 		return
 	}
 
-	// TODO: Заменить на реальный ID из авторизации
-	creatorID := uint(1)
+	// Получаем ID пользователя из JWT токена (опционально, так как это старый веб-интерфейс)
+	creatorID, err := h.getCreatorIDFromContext(ctx)
+	if err != nil {
+		// Для старого веб-интерфейса используем фиксированный ID как fallback
+		creatorID = h.Repository.FixedCreatorID()
+	}
 
 	// Добавляем газ в расчет (в память)
 	err = h.Repository.AddGasToCalculation(creatorID, gas)
@@ -111,8 +116,12 @@ func (h *Handler) AddGasToCalculation(ctx *gin.Context) {
 
 // GetJournal отображает журнал расчетов - GET запрос №3
 func (h *Handler) GetJournal(ctx *gin.Context) {
-	// TODO: Заменить на реальный ID из авторизации
-	creatorID := uint(1)
+	// Получаем ID пользователя из JWT токена (опционально, так как это старый веб-интерфейс)
+	creatorID, err := h.getCreatorIDFromContext(ctx)
+	if err != nil {
+		// Для старого веб-интерфейса используем фиксированный ID как fallback
+		creatorID = h.Repository.FixedCreatorID()
+	}
 
 	// Получаем черновик расчета с газами
 	calculation, err := h.Repository.GetDraftCalculation(creatorID)
@@ -137,8 +146,12 @@ func (h *Handler) RemoveGasFromCalculation(ctx *gin.Context) {
 		return
 	}
 
-	// TODO: Заменить на реальный ID из авторизации
-	creatorID := uint(1)
+	// Получаем ID пользователя из JWT токена (опционально, так как это старый веб-интерфейс)
+	creatorID, err := h.getCreatorIDFromContext(ctx)
+	if err != nil {
+		// Для старого веб-интерфейса используем фиксированный ID как fallback
+		creatorID = h.Repository.FixedCreatorID()
+	}
 
 	err = h.Repository.RemoveGasFromCalculation(creatorID, uint(gasCalculationID))
 	if err != nil {
@@ -209,7 +222,12 @@ func (h *Handler) SubmitCalculation(ctx *gin.Context) {
 		return
 	}
 
-	creatorID := h.Repository.FixedCreatorID()
+	// Получаем ID пользователя из JWT токена (опционально, так как это старый веб-интерфейс)
+	creatorID, err := h.getCreatorIDFromContext(ctx)
+	if err != nil {
+		// Для старого веб-интерфейса используем фиксированный ID как fallback
+		creatorID = h.Repository.FixedCreatorID()
+	}
 
 	if err := h.Repository.SubmitCalculation(uint(calculationID), creatorID); err != nil {
 		h.errorHandler(ctx, http.StatusInternalServerError, err)
@@ -252,7 +270,11 @@ func (h *Handler) CalculateGasPressure(ctx *gin.Context) {
 	calculatedPressure, err := h.Repository.CalculateGasPressure(uint(gasCalcID), params)
 	if err != nil {
 		// Показываем ошибку пользователю
-		creatorID := h.Repository.FixedCreatorID()
+		// Получаем ID пользователя из JWT токена (опционально)
+		creatorID, _ := h.getCreatorIDFromContext(ctx)
+		if creatorID == 0 {
+			creatorID = h.Repository.FixedCreatorID()
+		}
 		calculation, _ := h.Repository.GetDraftCalculation(creatorID)
 
 		ctx.HTML(http.StatusOK, "journal.html", gin.H{
@@ -270,7 +292,12 @@ func (h *Handler) CalculateGasPressure(ctx *gin.Context) {
 
 // CalculateAllGases рассчитывает все газы в расчете
 func (h *Handler) CalculateAllGases(ctx *gin.Context) {
-	creatorID := h.Repository.FixedCreatorID()
+	// Получаем ID пользователя из JWT токена (опционально, так как это старый веб-интерфейс)
+	creatorID, err := h.getCreatorIDFromContext(ctx)
+	if err != nil {
+		// Для старого веб-интерфейса используем фиксированный ID как fallback
+		creatorID = h.Repository.FixedCreatorID()
+	}
 
 	calculation, err := h.Repository.GetDraftCalculation(creatorID)
 	if err != nil {
@@ -297,7 +324,8 @@ type apiCalcListFilter struct {
 }
 
 type apiCalcUpdate struct {
-	Text *string `json:"text"`
+	Text   *string `json:"text"`
+	Status *string `json:"status"`
 }
 
 // ApiListCalculations godoc
@@ -333,6 +361,7 @@ func (h *Handler) ApiListCalculations(ctx *gin.Context) {
 // @Param id path int true "Calculation ID"
 // @Success 200 {object} map[string]interface{}
 // @Failure 400 {object} map[string]string
+// @Failure 403 {object} map[string]string
 // @Failure 500 {object} map[string]string
 // @Router /api/calculations/{id} [get]
 func (h *Handler) ApiGetCalculation(ctx *gin.Context) {
@@ -341,11 +370,26 @@ func (h *Handler) ApiGetCalculation(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
 		return
 	}
+	
+	// Получаем ID текущего пользователя
+	creatorID, err := h.getCreatorIDFromContext(ctx)
+	if err != nil {
+		h.errorHandler(ctx, http.StatusUnauthorized, err)
+		return
+	}
+	
 	item, gases, err := h.Repository.GetCalculationDetail(uint(id))
 	if err != nil {
 		h.errorHandler(ctx, http.StatusInternalServerError, err)
 		return
 	}
+	
+	// Проверяем, что заявка принадлежит текущему пользователю
+	if item.CreatorID != creatorID {
+		h.errorHandler(ctx, http.StatusForbidden, errors.New("access denied: this calculation belongs to another user"))
+		return
+	}
+	
 	ctx.JSON(http.StatusOK, gin.H{"calculation": item, "gases": gases})
 }
 
@@ -368,12 +412,32 @@ func (h *Handler) ApiUpdateCalculation(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
 		return
 	}
+	
+	// Получаем ID текущего пользователя
+	creatorID, err := h.getCreatorIDFromContext(ctx)
+	if err != nil {
+		h.errorHandler(ctx, http.StatusUnauthorized, err)
+		return
+	}
+	
+	// Проверяем, что заявка принадлежит текущему пользователю
+	item, _, err := h.Repository.GetCalculationDetail(uint(id))
+	if err != nil {
+		h.errorHandler(ctx, http.StatusInternalServerError, err)
+		return
+	}
+	
+	if item.CreatorID != creatorID {
+		h.errorHandler(ctx, http.StatusForbidden, errors.New("access denied: this calculation belongs to another user"))
+		return
+	}
+	
 	var req apiCalcUpdate
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		h.errorHandler(ctx, http.StatusBadRequest, err)
 		return
 	}
-	if err := h.Repository.UpdateCalculationFields(uint(id), req.Text); err != nil {
+	if err := h.Repository.UpdateCalculationFields(uint(id), req.Text, req.Status); err != nil {
 		h.errorHandler(ctx, http.StatusInternalServerError, err)
 		return
 	}
@@ -397,7 +461,13 @@ func (h *Handler) ApiSubmitCalculation(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
 		return
 	}
-	creatorID := h.Repository.FixedCreatorID()
+	// Получаем ID пользователя из JWT токена
+	creatorID, err := h.getCreatorIDFromContext(ctx)
+	if err != nil {
+		h.errorHandler(ctx, http.StatusUnauthorized, err)
+		return
+	}
+	
 	if err := h.Repository.SubmitCalculation(uint(id), creatorID); err != nil {
 		h.errorHandler(ctx, http.StatusBadRequest, err)
 		return
@@ -464,6 +534,7 @@ func (h *Handler) ApiRejectCalculation(ctx *gin.Context) {
 // @Param id path int true "Calculation ID"
 // @Success 204
 // @Failure 400 {object} map[string]string
+// @Failure 403 {object} map[string]string
 // @Failure 500 {object} map[string]string
 // @Router /api/calculations/{id} [delete]
 func (h *Handler) ApiDeleteCalculation(ctx *gin.Context) {
@@ -472,6 +543,26 @@ func (h *Handler) ApiDeleteCalculation(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
 		return
 	}
+	
+	// Получаем ID текущего пользователя
+	creatorID, err := h.getCreatorIDFromContext(ctx)
+	if err != nil {
+		h.errorHandler(ctx, http.StatusUnauthorized, err)
+		return
+	}
+	
+	// Проверяем, что заявка принадлежит текущему пользователю
+	item, _, err := h.Repository.GetCalculationDetail(uint(id))
+	if err != nil {
+		h.errorHandler(ctx, http.StatusInternalServerError, err)
+		return
+	}
+	
+	if item.CreatorID != creatorID {
+		h.errorHandler(ctx, http.StatusForbidden, errors.New("access denied: this calculation belongs to another user"))
+		return
+	}
+	
 	if err := h.Repository.DeleteCalculation(uint(id)); err != nil {
 		h.errorHandler(ctx, http.StatusBadRequest, err)
 		return
@@ -481,70 +572,177 @@ func (h *Handler) ApiDeleteCalculation(ctx *gin.Context) {
 
 // ApiMMDelete godoc
 // @Summary Remove gas from draft
-// @Description Remove gas from draft calculation
+// @Description Remove gas calculation entry from draft (by GasCalculation ID, not Gas ID)
 // @Tags Calculations
 // @Produce json
 // @Security BearerAuth
-// @Param id path int true "Gas ID"
+// @Param id path int true "GasCalculation ID"
 // @Success 204
 // @Failure 400 {object} map[string]string
 // @Failure 500 {object} map[string]string
 // @Router /api/mm/gas/{id} [delete]
 func (h *Handler) ApiMMDelete(ctx *gin.Context) {
-	gasIDU64, err := strconv.ParseUint(ctx.Param("id"), 10, 64)
+	gasCalculationIDU64, err := strconv.ParseUint(ctx.Param("id"), 10, 64)
 	if err != nil {
 		h.errorHandler(ctx, http.StatusBadRequest, err)
 		return
 	}
-	creatorID := h.Repository.FixedCreatorID()
-	if err := h.Repository.RemoveGasFromDraft(creatorID, uint(gasIDU64)); err != nil {
+	
+	// Получаем ID пользователя из JWT токена для проверки прав
+	creatorID, err := h.getCreatorIDFromContext(ctx)
+	if err != nil {
+		h.errorHandler(ctx, http.StatusUnauthorized, err)
+		return
+	}
+	
+	// Проверяем, что GasCalculation принадлежит черновику текущего пользователя
+	var gasCalc ds.GasCalculation
+	if err := h.Repository.DB().First(&gasCalc, gasCalculationIDU64).Error; err != nil {
+		h.errorHandler(ctx, http.StatusNotFound, err)
+		return
+	}
+	
+	// Проверяем, что расчет принадлежит текущему пользователю
+	var calculation ds.Calculation
+	if err := h.Repository.DB().First(&calculation, gasCalc.CalculationID).Error; err != nil {
+		h.errorHandler(ctx, http.StatusNotFound, err)
+		return
+	}
+	
+	if calculation.CreatorID != creatorID {
+		h.errorHandler(ctx, http.StatusForbidden, errors.New("access denied"))
+		return
+	}
+	
+	// Удаляем запись GasCalculation по ее ID
+	if err := h.Repository.DB().Delete(&ds.GasCalculation{}, gasCalculationIDU64).Error; err != nil {
 		h.errorHandler(ctx, http.StatusInternalServerError, err)
 		return
 	}
+	
 	ctx.Status(http.StatusNoContent)
 }
 
 type apiMMUpdateReq struct {
-	Sound    *bool `json:"sound"`
-	Quantity *int  `json:"quantity"`
-	Position *int  `json:"position"`
+	Sound               *bool    `json:"sound"`
+	Quantity            *int     `json:"quantity"`
+	Position            *int     `json:"position"`
+	InitialPressure     *float64 `json:"initial_pressure"`
+	InitialVolume       *float64 `json:"initial_volume"`
+	InitialTemperature  *float64 `json:"initial_temperature"`
+	FinalTemperature    *float64 `json:"final_temperature"`
+	Volume              *float64 `json:"volume"`
+	GasAmount           *float64 `json:"gas_amount"`
+	FinalPressure       *float64 `json:"final_pressure"`
 }
 
 // ApiMMUpdate godoc
 // @Summary Update gas calculation fields
-// @Description Update sound, quantity or position for gas in calculation
+// @Description Update gas calculation parameters (sound, quantity, position, calculation params)
 // @Tags Calculations
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Param id path int true "Gas ID"
+// @Param id path int true "GasCalculation ID"
 // @Param request body apiMMUpdateReq true "Update data"
 // @Success 204
 // @Failure 400 {object} map[string]string
 // @Failure 500 {object} map[string]string
 // @Router /api/mm/gas/{id} [put]
 func (h *Handler) ApiMMUpdate(ctx *gin.Context) {
-	gasIDU64, err := strconv.ParseUint(ctx.Param("id"), 10, 64)
+	gasCalculationIDU64, err := strconv.ParseUint(ctx.Param("id"), 10, 64)
 	if err != nil {
 		h.errorHandler(ctx, http.StatusBadRequest, err)
 		return
 	}
+	
+	// Получаем ID пользователя из JWT токена для проверки прав
+	creatorID, err := h.getCreatorIDFromContext(ctx)
+	if err != nil {
+		h.errorHandler(ctx, http.StatusUnauthorized, err)
+		return
+	}
+	
+	// Проверяем, что GasCalculation принадлежит черновику текущего пользователя
+	var gasCalc ds.GasCalculation
+	if err := h.Repository.DB().First(&gasCalc, gasCalculationIDU64).Error; err != nil {
+		h.errorHandler(ctx, http.StatusNotFound, err)
+		return
+	}
+	
+	var calculation ds.Calculation
+	if err := h.Repository.DB().First(&calculation, gasCalc.CalculationID).Error; err != nil {
+		h.errorHandler(ctx, http.StatusNotFound, err)
+		return
+	}
+	
+	if calculation.CreatorID != creatorID {
+		h.errorHandler(ctx, http.StatusForbidden, errors.New("access denied"))
+		return
+	}
+	
 	var req apiMMUpdateReq
 	if err := ctx.ShouldBindJSON(&req); err != nil {
+		fmt.Printf("Error binding JSON request: %v\n", err)
 		h.errorHandler(ctx, http.StatusBadRequest, err)
 		return
 	}
-	creatorID := h.Repository.FixedCreatorID()
-	if err := h.Repository.UpdateMM(creatorID, uint(gasIDU64), req.Sound, req.Quantity, req.Position); err != nil {
-		h.errorHandler(ctx, http.StatusInternalServerError, err)
-		return
+	
+	// Обновляем параметры расчета
+	params := map[string]interface{}{}
+	if req.Sound != nil {
+		params["sound"] = *req.Sound
 	}
+	if req.Quantity != nil {
+		params["quantity"] = *req.Quantity
+	}
+	if req.Position != nil {
+		params["position"] = *req.Position
+	}
+	if req.InitialPressure != nil {
+		params["initial_pressure"] = *req.InitialPressure
+	}
+	if req.InitialVolume != nil {
+		params["initial_volume"] = *req.InitialVolume
+	}
+	if req.InitialTemperature != nil {
+		params["initial_temperature"] = *req.InitialTemperature
+	}
+	if req.FinalTemperature != nil {
+		params["final_temperature"] = *req.FinalTemperature
+	}
+	if req.Volume != nil {
+		params["volume"] = *req.Volume
+	}
+	if req.GasAmount != nil {
+		params["gas_amount"] = *req.GasAmount
+	}
+	if req.FinalPressure != nil {
+		params["final_pressure"] = *req.FinalPressure
+	}
+	
+	if len(params) > 0 {
+		fmt.Printf("Updating gas calculation ID %d with params: %+v\n", gasCalculationIDU64, params)
+		if err := h.Repository.UpdateGasCalculationParams(uint(gasCalculationIDU64), params); err != nil {
+			// Логируем ошибку для отладки
+			fmt.Printf("Error updating gas calculation params (ID: %d): %v\n", gasCalculationIDU64, err)
+			h.errorHandler(ctx, http.StatusInternalServerError, err)
+			return
+		}
+	}
+	
 	ctx.Status(http.StatusNoContent)
 }
 
 // UpdateAllGasParams обновляет параметры всех газов разом
 func (h *Handler) UpdateAllGasParams(ctx *gin.Context) {
-	creatorID := h.Repository.FixedCreatorID()
+	// Получаем ID пользователя из JWT токена
+	creatorID, err := h.getCreatorIDFromContext(ctx)
+	if err != nil {
+		h.errorHandler(ctx, http.StatusUnauthorized, err)
+		return
+	}
+	
 	calculation, err := h.Repository.GetDraftCalculation(creatorID)
 	if err != nil {
 		h.errorHandler(ctx, http.StatusInternalServerError, err)
@@ -598,7 +796,13 @@ func (h *Handler) UpdateAllGasParams(ctx *gin.Context) {
 
 // SaveAllGasParams сохраняет все параметры без расчета
 func (h *Handler) SaveAllGasParams(ctx *gin.Context) {
-	creatorID := h.Repository.FixedCreatorID()
+	// Получаем ID пользователя из JWT токена
+	creatorID, err := h.getCreatorIDFromContext(ctx)
+	if err != nil {
+		h.errorHandler(ctx, http.StatusUnauthorized, err)
+		return
+	}
+	
 	calculation, err := h.Repository.GetDraftCalculation(creatorID)
 	if err != nil {
 		h.errorHandler(ctx, http.StatusInternalServerError, err)
@@ -673,15 +877,17 @@ func (h *Handler) ApiGetMyCalculations(ctx *gin.Context) {
 		return
 	}
 
-	// Преобразуем в DTO
+	// Преобразуем в DTO с газами
 	var response []CalculationResponse
 	for _, calc := range calculations {
+		// Газы уже загружены через Preload в GetUserCalculations
 		response = append(response, CalculationResponse{
 			ID:         calc.ID,
 			Status:     calc.Status,
 			Text:       calc.Text.String,
 			DateCreate: calc.DateCreate,
 			CreatorID:  calc.CreatorID,
+			Gases:      convertGasCalculationsToDTO(calc.Gases),
 		})
 	}
 
@@ -699,8 +905,12 @@ func (h *Handler) ApiGetMyCalculations(ctx *gin.Context) {
 // @Failure 500 {object} map[string]string
 // @Router /api/my-draft [get]
 func (h *Handler) ApiGetMyDraft(ctx *gin.Context) {
-	// Используем фиксированный ID как в веб-интерфейсе
-	creatorID := uint(1)
+	// Получаем ID пользователя из JWT токена
+	creatorID, err := h.getCreatorIDFromContext(ctx)
+	if err != nil {
+		h.errorHandler(ctx, http.StatusUnauthorized, err)
+		return
+	}
 
 	// Получаем черновик расчета с газами
 	calculation, err := h.Repository.GetDraftCalculation(creatorID)

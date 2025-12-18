@@ -4,10 +4,10 @@ import (
 	"WEB/internal/app/ds"
 	"database/sql"
 	"errors"
-	"strings"
 	"time"
 
 	"github.com/sirupsen/logrus"
+	"gorm.io/gorm"
 )
 
 // CalculateGasPressure рассчитывает давление для конкретного газа в расчете
@@ -37,20 +37,20 @@ func (r *Repository) CalculateGasPressure(gasCalculationID uint, params map[stri
 	// Конвертируем в атмосферы (1 атм = 101325 Па)
 	pressureAtm := pressure / 101325.0
 
-	// Подготавливаем обновления
+	// Подготавливаем обновления с правильным преобразованием в sql.NullFloat64
 	updates := map[string]interface{}{
-		"gas_amount":        gasAmount,
-		"final_temperature": finalTemp,
-		"volume":            volume,
-		"final_pressure":    pressureAtm, // Сохраняем в атмосферах
+		"gas_amount":        sql.NullFloat64{Float64: gasAmount, Valid: true},
+		"final_temperature": sql.NullFloat64{Float64: finalTemp, Valid: true},
+		"volume":            sql.NullFloat64{Float64: volume, Valid: true},
+		"final_pressure":    sql.NullFloat64{Float64: pressureAtm, Valid: true}, // Сохраняем в атмосферах
 	}
 
 	// Добавляем опциональные параметры
 	if initialPressure, ok := params["initial_pressure"]; ok {
-		updates["initial_pressure"] = initialPressure
+		updates["initial_pressure"] = sql.NullFloat64{Float64: initialPressure, Valid: true}
 	}
 	if initialTemp, ok := params["initial_temperature"]; ok {
-		updates["initial_temperature"] = initialTemp
+		updates["initial_temperature"] = sql.NullFloat64{Float64: initialTemp, Valid: true}
 	}
 
 	// Сохраняем в базу
@@ -74,14 +74,159 @@ func getParamValue(params map[string]float64, key string, dbValue sql.NullFloat6
 
 // UpdateGasCalculationParams обновляет параметры расчета для газа
 func (r *Repository) UpdateGasCalculationParams(gasCalculationID uint, params map[string]interface{}) error {
-	return r.db.Model(&ds.GasCalculation{}).Where("id = ?", gasCalculationID).Updates(params).Error
+	// Сначала получаем текущую запись
+	var gasCalc ds.GasCalculation
+	if err := r.db.First(&gasCalc, gasCalculationID).Error; err != nil {
+		logrus.Errorf("Gas calculation not found: ID %d, error: %v", gasCalculationID, err)
+		return err
+	}
+	
+	// Обновляем поля напрямую в структуре
+	hasUpdates := false
+	
+	// Вспомогательная функция для преобразования значения в sql.NullFloat64
+	toNullFloat64 := func(value interface{}) (sql.NullFloat64, bool) {
+		switch v := value.(type) {
+		case float64:
+			return sql.NullFloat64{Float64: v, Valid: true}, true
+		case *float64:
+			if v != nil {
+				return sql.NullFloat64{Float64: *v, Valid: true}, true
+			}
+		case float32:
+			return sql.NullFloat64{Float64: float64(v), Valid: true}, true
+		case int:
+			return sql.NullFloat64{Float64: float64(v), Valid: true}, true
+		case int64:
+			return sql.NullFloat64{Float64: float64(v), Valid: true}, true
+		}
+		return sql.NullFloat64{}, false
+	}
+	
+	// Обновляем числовые поля
+	if val, ok := params["initial_pressure"]; ok {
+		if nullVal, ok2 := toNullFloat64(val); ok2 {
+			gasCalc.InitialPressure = nullVal
+			hasUpdates = true
+		}
+	}
+	if val, ok := params["initial_volume"]; ok {
+		if nullVal, ok2 := toNullFloat64(val); ok2 {
+			// В структуре нет InitialVolume, используем Volume
+			gasCalc.Volume = nullVal
+			hasUpdates = true
+		}
+	}
+	if val, ok := params["initial_temperature"]; ok {
+		if nullVal, ok2 := toNullFloat64(val); ok2 {
+			gasCalc.InitialTemperature = nullVal
+			hasUpdates = true
+		}
+	}
+	if val, ok := params["final_temperature"]; ok {
+		if nullVal, ok2 := toNullFloat64(val); ok2 {
+			gasCalc.FinalTemperature = nullVal
+			hasUpdates = true
+		}
+	}
+	if val, ok := params["volume"]; ok {
+		if nullVal, ok2 := toNullFloat64(val); ok2 {
+			gasCalc.Volume = nullVal
+			hasUpdates = true
+		}
+	}
+	if val, ok := params["gas_amount"]; ok {
+		if nullVal, ok2 := toNullFloat64(val); ok2 {
+			gasCalc.GasAmount = nullVal
+			hasUpdates = true
+		}
+	}
+	if val, ok := params["final_pressure"]; ok {
+		if nullVal, ok2 := toNullFloat64(val); ok2 {
+			gasCalc.FinalPressure = nullVal
+			hasUpdates = true
+		}
+	}
+	
+	// Обновляем нечисловые поля
+	if val, ok := params["sound"]; ok {
+		if boolVal, ok2 := val.(bool); ok2 {
+			gasCalc.Sound = boolVal
+			hasUpdates = true
+		}
+	}
+	if val, ok := params["quantity"]; ok {
+		if intVal, ok2 := val.(int); ok2 {
+			gasCalc.Quantity = intVal
+			hasUpdates = true
+		}
+	}
+	if val, ok := params["position"]; ok {
+		if intVal, ok2 := val.(int); ok2 {
+			gasCalc.Position = intVal
+			hasUpdates = true
+		}
+	}
+	
+	if !hasUpdates {
+		logrus.Warnf("No updates to apply for gas calculation ID: %d", gasCalculationID)
+		return nil
+	}
+	
+	logrus.Infof("Updating gas calculation ID %d", gasCalculationID)
+	// Используем Updates с Select для обновления только измененных полей
+	// Это более безопасно, чем Save(), который обновляет все поля
+	updates := make(map[string]interface{})
+	if params["initial_pressure"] != nil {
+		updates["initial_pressure"] = gasCalc.InitialPressure
+	}
+	if params["initial_volume"] != nil || params["volume"] != nil {
+		updates["volume"] = gasCalc.Volume
+	}
+	if params["initial_temperature"] != nil {
+		updates["initial_temperature"] = gasCalc.InitialTemperature
+	}
+	if params["final_temperature"] != nil {
+		updates["final_temperature"] = gasCalc.FinalTemperature
+	}
+	if params["gas_amount"] != nil {
+		updates["gas_amount"] = gasCalc.GasAmount
+	}
+	if params["final_pressure"] != nil {
+		updates["final_pressure"] = gasCalc.FinalPressure
+	}
+	if params["sound"] != nil {
+		updates["sound"] = gasCalc.Sound
+	}
+	if params["quantity"] != nil {
+		updates["quantity"] = gasCalc.Quantity
+	}
+	if params["position"] != nil {
+		updates["position"] = gasCalc.Position
+	}
+	
+	fields := make([]string, 0, len(updates))
+	for key := range updates {
+		fields = append(fields, key)
+	}
+	
+	err := r.db.Model(&ds.GasCalculation{}).
+		Select(fields).
+		Where("id = ?", gasCalculationID).
+		Updates(updates).Error
+	if err != nil {
+		logrus.Errorf("Error updating gas calculation ID %d: %v", gasCalculationID, err)
+	}
+	return err
 }
 
 // GetCalculationWithGases возвращает расчет с газами и их параметрами
 func (r *Repository) GetCalculationWithGases(calculationID uint) (*ds.Calculation, error) {
 	var calculation ds.Calculation
 	err := r.db.
-		Preload("Gases").
+		Preload("Gases", func(db *gorm.DB) *gorm.DB {
+			return db.Order("position DESC") // Сортируем газы в обратном порядке - последний добавленный первый
+		}).
 		Preload("Gases.Gas").
 		Preload("Creator").
 		First(&calculation, calculationID).Error
@@ -95,7 +240,9 @@ func (r *Repository) GetCalculationWithGases(calculationID uint) (*ds.Calculatio
 func (r *Repository) GetDraftCalculation(creatorID uint) (*ds.Calculation, error) {
 	var calculation ds.Calculation
 	err := r.db.
-		Preload("Gases").
+		Preload("Gases", func(db *gorm.DB) *gorm.DB {
+			return db.Order("position DESC") // Сортируем газы в обратном порядке - последний добавленный первый
+		}).
 		Preload("Gases.Gas").
 		Where("creator_id = ? AND status = ?", creatorID, "draft").
 		First(&calculation).Error
@@ -197,7 +344,7 @@ func (r *Repository) GetCalculationDetail(id uint) (*ds.Calculation, []map[strin
 		return nil, nil, err
 	}
 	var mm []ds.GasCalculation
-	if err := r.db.Preload("Gas").Where("calculation_id = ?", id).Find(&mm).Error; err != nil {
+	if err := r.db.Preload("Gas").Where("calculation_id = ?", id).Order("position DESC").Find(&mm).Error; err != nil {
 		return &c, nil, err
 	}
 	list := make([]map[string]interface{}, 0, len(mm))
@@ -219,10 +366,25 @@ func (r *Repository) GetCalculationDetail(id uint) (*ds.Calculation, []map[strin
 }
 
 // UpdateCalculationFields обновляет поля расчета
-func (r *Repository) UpdateCalculationFields(id uint, text *string) error {
+func (r *Repository) UpdateCalculationFields(id uint, text *string, status *string) error {
 	updates := map[string]interface{}{}
 	if text != nil {
 		updates["text"] = *text
+	}
+	if status != nil {
+		// Валидация статуса
+		validStatuses := []string{"draft", "formed", "deleted", "submitted", "completed", "rejected"}
+		isValid := false
+		for _, validStatus := range validStatuses {
+			if *status == validStatus {
+				isValid = true
+				break
+			}
+		}
+		if !isValid {
+			return errors.New("invalid status")
+		}
+		updates["status"] = *status
 	}
 	return r.db.Model(&ds.Calculation{}).Where("id = ?", id).Updates(updates).Error
 }
@@ -395,27 +557,31 @@ func (r *Repository) addGasToDraftDB(gasID uint, creatorID uint) error {
 	}
 	logrus.Infof("Gas found: %s", gas.Title)
 
-	// Try to create the record, if it fails due to duplicate key, ignore the error
+	// Получаем максимальный порядковый номер среди существующих газов в расчете
+	var maxPosition int
+	var lastMM ds.GasCalculation
+	if err := r.db.Where("calculation_id = ?", calc.ID).Order("position DESC").First(&lastMM).Error; err == nil {
+		maxPosition = lastMM.Position
+	}
+	// Новый газ получает следующий порядковый номер (начиная с 1)
+	newPosition := maxPosition + 1
+
+	// Создаем новую запись (теперь один и тот же газ можно добавлять несколько раз)
 	mm := ds.GasCalculation{
 		CalculationID: calc.ID,
 		GasID:         gasID,
 		Sound:         true,
 		Quantity:      1,
-		Position:      0,
+		Position:      newPosition, // Устанавливаем порядковый номер по порядку добавления
 	}
 
 	err = r.db.Create(&mm).Error
 	if err != nil {
-		// Check if it's a duplicate key error
-		if strings.Contains(err.Error(), "idx_calculation_gas") || strings.Contains(err.Error(), "duplicate key") {
-			logrus.Infof("Gas already exists in calculation, ignoring duplicate key error")
-			return nil // Ignore duplicate key error - gas is already in calculation
-		}
 		logrus.Errorf("Error creating gas calculation: %v", err)
 		return err
 	}
 
-	logrus.Infof("Gas calculation created successfully")
+	logrus.Infof("Gas calculation created successfully with position %d", newPosition)
 	return nil
 }
 

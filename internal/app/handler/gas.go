@@ -196,8 +196,14 @@ func (h *Handler) ApiAddGasToDraft(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
 		return
 	}
-	// фиксированный пользователь-создатель (singleton)
-	creatorID := h.Repository.FixedCreatorID()
+	
+	// Получаем ID пользователя из JWT токена
+	creatorID, err := h.getCreatorIDFromContext(ctx)
+	if err != nil {
+		h.errorHandler(ctx, http.StatusUnauthorized, err)
+		return
+	}
+	
 	if err := h.Repository.AddGasToDraft(uint(id), creatorID); err != nil {
 		h.errorHandler(ctx, http.StatusInternalServerError, err)
 		return
@@ -207,7 +213,17 @@ func (h *Handler) ApiAddGasToDraft(ctx *gin.Context) {
 
 // ApiGetCart GET /api/cart
 func (h *Handler) ApiGetCart(ctx *gin.Context) {
-	creatorID := h.Repository.FixedCreatorID()
+	// Получаем ID пользователя из JWT токена
+	creatorID, err := h.getCreatorIDFromContext(ctx)
+	if err != nil {
+		// Если пользователь не авторизован, возвращаем пустую корзину
+		ctx.JSON(http.StatusOK, gin.H{
+			"draft_id": nil,
+			"count":    0,
+		})
+		return
+	}
+	
 	id, count, err := h.Repository.GetDraftCartInfo(creatorID)
 	if err != nil {
 		h.errorHandler(ctx, http.StatusInternalServerError, err)
