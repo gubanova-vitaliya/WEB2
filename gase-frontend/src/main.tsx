@@ -5,10 +5,19 @@ import { Provider } from 'react-redux'
 import { registerSW } from 'virtual:pwa-register'
 import App from './App.tsx'
 import store from './store'
+import { checkAuth, getUserProfileAsync } from './slices/userSlice'
 import { getDestRoot } from '../target_config'
 import { addGasToCart, getCartCount } from './modules/cartApi'
 import 'bootstrap/dist/css/bootstrap.min.css'
 import './index.css'
+
+// Проверяем авторизацию при загрузке приложения
+store.dispatch(checkAuth());
+// Загружаем профиль, если пользователь авторизован
+const token = localStorage.getItem('auth_token');
+if (token) {
+  store.dispatch(getUserProfileAsync());
+}
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

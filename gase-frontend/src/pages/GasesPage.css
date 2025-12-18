@@ -24,6 +24,121 @@
   min-width: 200px;
 }
 
+.journal-icon-wrapper {
+  max-width: 1200px;
+  margin: 10px auto 0 auto;
+  padding: 0 20px 10px 20px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.journal-icon-button {
+  position: relative;
+  border: none;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+}
+
+.journal-icon-button.disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.journal-icon-circle {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #2c3e50, #4680C2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.18);
+}
+
+.journal-icon-inner {
+  position: relative;
+  width: 30px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.journal-book {
+  width: 16px;
+  height: 22px;
+  background: #ffffff;
+  border-radius: 3px;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.08);
+  padding: 2px 3px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.journal-book-line {
+  height: 2px;
+  border-radius: 999px;
+  background: #b0c4de;
+}
+
+.journal-book-line.short {
+  width: 70%;
+  align-self: flex-start;
+}
+
+.journal-gas-cylinder {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-left: 2px;
+}
+
+.journal-gas-neck {
+  width: 8px;
+  height: 3px;
+  border-radius: 2px;
+  background: #e0f7ff;
+  margin-bottom: 2px;
+}
+
+.journal-gas-body {
+  width: 10px;
+  height: 14px;
+  border-radius: 5px;
+  background: linear-gradient(180deg, #52b3ff, #1e88e5);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.08);
+}
+
+.journal-icon-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  background: #ff3347;
+  color: #ffffff;
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+  font-weight: 600;
+}
+
+.journal-button {
+  margin-left: auto;
+  position: relative;
+}
+
+.journal-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .cart-link {
   display: flex;
   align-items: center;
@@ -78,6 +193,24 @@
 
 .cart-link.inactive:hover {
   background: #cccccc !important;
+}
+
+.search-container {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  padding: 20px;
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.search-input {
+  flex: 1;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 16px;
 }
 
 .search-form {

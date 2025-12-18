@@ -1,7 +1,11 @@
 import { FC } from "react";
 import { Card, Button } from "react-bootstrap";
+import { useDispatch, useSelector } from "react-redux";
 import "./GasCard.css";
 import { getDestRoot } from "../../target_config";
+import { AppDispatch, RootState } from "../store";
+import { addGasToCalculation } from "../slices/calculationSlice";
+import { loadCartData } from "../hooks/useCartData";
 
 // Получаем базовый путь для правильного формирования путей
 const getDefaultImage = () => {
@@ -28,6 +32,9 @@ interface GasCardProps {
 }
 
 export const GasCard: FC<GasCardProps> = ({ gas, onCardClick }) => {
+  const dispatch = useDispatch<AppDispatch>();
+  const isAuthenticated = useSelector((state: RootState) => state.user.isAuthenticated);
+
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
     const target = e.target as HTMLImageElement;
     // Логируем ошибку для отладки
@@ -35,6 +42,22 @@ export const GasCard: FC<GasCardProps> = ({ gas, onCardClick }) => {
     const defaultImagePath = getDefaultImage();
     if (target.src !== defaultImagePath && !target.src.includes('slide1.svg')) {
       target.src = defaultImagePath;
+    }
+  };
+
+  // Обработчик добавления газа в заявку
+  const handleAdd = async () => {
+    if (gas.id) {
+      try {
+        const result = await dispatch(addGasToCalculation(gas.id));
+        if (addGasToCalculation.fulfilled.match(result)) {
+          // Обновляем корзину после успешного добавления
+          await loadCartData(dispatch);
+          // Не переходим на другую страницу - остаемся на текущей
+        }
+      } catch (error) {
+        console.error('Error adding gas to calculation:', error);
+      }
     }
   };
 
@@ -68,13 +91,24 @@ export const GasCard: FC<GasCardProps> = ({ gas, onCardClick }) => {
             <Card.Text>{gas.description}</Card.Text>
           </div>
         )}
-        <Button
-          className="card-button"
-          variant="primary"
-          onClick={() => onCardClick(gas.id)}
-        >
-          Подробнее
-        </Button>
+        <div className="card-buttons">
+          <Button
+            className="card-button"
+            variant="primary"
+            onClick={() => onCardClick(gas.id)}
+          >
+            Подробнее
+          </Button>
+          {isAuthenticated && (
+            <Button
+              className="card-button-add"
+              variant="success"
+              onClick={handleAdd}
+            >
+              Добавить
+            </Button>
+          )}
+        </div>
       </Card.Body>
     </Card>
   );

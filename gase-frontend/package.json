@@ -12,6 +12,7 @@
     "deploy": "npm run build:gh-pages && gh-pages -d dist",
     "deploy:with-backend": "npm run build:gh-pages && gh-pages -d dist",
     "generate-icons": "node scripts/generate-icons.js",
+    "generate-api": "node scripts/generate-api.mjs",
     "tauri": "tauri"
   },
   "dependencies": {
